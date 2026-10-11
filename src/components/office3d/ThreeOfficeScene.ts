@@ -1135,21 +1135,40 @@ export class ThreeOfficeScene {
       deskGroup.add(leg);
     });
 
-    // Monitors: Orchestra has wide curved panoramic screen; others have dual screens
+    // Monitors: Orchestra has wide curved panoramic screen facing the seated user (-Z in local desk space); others have dual screens
     const screenMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     if (isOrchestra) {
+      // Elegant heavy-duty monitor stand directly holding the screen
+      const standBase = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.03, 20), this.sharedLegMat);
+      standBase.position.set(0, 1.425, -0.42);
+      deskGroup.add(standBase);
+
+      const standPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.58, 12), this.sharedLegMat);
+      standPole.position.set(0, 1.70, -0.42);
+      deskGroup.add(standPole);
+
+      // Articulated mounting bracket on the back of monitor
+      const mountBracket = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.08), this.sharedLegMat);
+      mountBracket.position.set(0, 1.88, -0.42);
+      deskGroup.add(mountBracket);
+
+      // Curved Panoramic Monitor
+      // Arc radius R = 1.4, center placed at z = 0.98 so the back apex of the curved monitor touches z = -0.42 (0.98 - 1.4 = -0.42)
+      // Perfectly anchored directly to the stand pole!
+      const monArcRadius = 1.4;
+      const monCenterZ = 0.98; // Center of curvature is at the user side (+Z), curving towards the user
       const mon = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.4, 1.4, 0.8, 20, 1, true, -Math.PI / 3, (Math.PI * 2) / 3),
+        new THREE.CylinderGeometry(monArcRadius, monArcRadius, 0.72, 28, 1, true, Math.PI - 0.55, 1.1),
         new THREE.MeshStandardMaterial({ color: 0x09090b, side: THREE.DoubleSide })
       );
-      mon.position.set(0, 1.95, -0.2);
+      mon.position.set(0, 1.95, monCenterZ);
       deskGroup.add(mon);
 
       const monScreen = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.38, 1.38, 0.74, 20, 1, true, -Math.PI / 3 + 0.05, (Math.PI * 2) / 3 - 0.1),
+        new THREE.CylinderGeometry(monArcRadius - 0.015, monArcRadius - 0.015, 0.66, 28, 1, true, Math.PI - 0.52, 1.04),
         screenMat
       );
-      monScreen.position.set(0, 1.95, -0.2);
+      monScreen.position.set(0, 1.95, monCenterZ);
       deskGroup.add(monScreen);
     } else {
       const mon1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.75, 0.05), new THREE.MeshStandardMaterial({ color: 0x09090b }));
@@ -1169,9 +1188,9 @@ export class ThreeOfficeScene {
       deskGroup.add(mon2);
     }
 
-    // Modern Ergonomic Office Task Chair (Cleanly aligned facing desk)
+    // Modern Ergonomic Office Task Chair (Comfortably spaced, not cramped against desk)
     const chair = new THREE.Group();
-    chair.position.set(0, 0, 0.55);
+    chair.position.set(0, 0, 0.95);
 
     // 5-Star Caster Base
     for (let c = 0; c < 5; c++) {
@@ -1195,7 +1214,7 @@ export class ThreeOfficeScene {
     seat.position.y = 0.88;
     chair.add(seat);
 
-    // Ergonomic Lumbar Backrest (local chair z = 0.34, so local desk z = 0.55 + 0.34 = 0.89)
+    // Ergonomic Lumbar Backrest
     const back = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.75, 0.06), this.sharedChairMat);
     back.position.set(0, 1.28, 0.34);
     chair.add(back);
@@ -1218,9 +1237,8 @@ export class ThreeOfficeScene {
     // 2. THE PURE WHITE CHIBI ROBOT MODEL
     // CALCULATE PRECISE SEATED WORLD POSITION & ROTATION
     // ==========================================
-    // Local seated offset inside desk coordinate frame:
-    // Sitting comfortably on chair cushion (y = 0.94, z = 0.52), back against backrest (z = 0.89)
-    const localChairOffset = new THREE.Vector3(0, 0.94, 0.52);
+    // Seated comfortably in the chair (chair is at z = 0.95, robot sits centered on cushion at z = 0.95, y = 0.94)
+    const localChairOffset = new THREE.Vector3(0, 0.94, 0.95);
     // Rotate offset by deskRotationY to get accurate world position:
     const worldChairOffset = localChairOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), agent.deskRotationY);
     const deskSeatedPos = new THREE.Vector3(
