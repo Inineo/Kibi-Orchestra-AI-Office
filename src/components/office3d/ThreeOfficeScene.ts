@@ -263,10 +263,7 @@ export class ThreeOfficeScene {
     // 4. Live Animated Wall Clock (Real-time moving hands)
     this.createAnimatedWallClock();
 
-    // 5. Bookshelves with Colorful Book Spines
-    this.createBookshelf(new THREE.Vector3(14.5, 0, -4.5));
-
-    // 6. 3 Main Workstation Zones
+    // 5. 3 Main Workstation Zones
     // A. ORCHESTRA POD • 1 MAESTRO ONLY (Center Front)
     this.createZonePod(
       'ORCHESTRA POD • 1 MAESTRO',
@@ -278,9 +275,9 @@ export class ThreeOfficeScene {
       true
     );
 
-    // B. DEVELOPER BAY (Left Wing)
+    // B. DEVELOPER BAY (Left Wing: Frontend & Backend)
     this.createZonePod(
-      'DEVELOPER POD',
+      'ENGINEERING BAY',
       new THREE.Vector3(-9.0, 0.025, -1.5),
       9.2,
       8.8,
@@ -288,9 +285,9 @@ export class ThreeOfficeScene {
       0x1e222b
     );
 
-    // C. WRITER STUDIO (Right Wing)
+    // C. QUALITY & OPERATIONS STUDIO (Right Wing: QA & Intern)
     this.createZonePod(
-      'WRITER POD',
+      'QUALITY & DOCS STUDIO',
       new THREE.Vector3(9.0, 0.025, -1.5),
       9.2,
       8.8,
