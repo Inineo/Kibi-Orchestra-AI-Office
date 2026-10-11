@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { executeAgentTaskStep } from '../lib/aiClient';
+import { executeAgentTaskStep, decomposeMissionWithPM } from '../lib/aiClient';
 import {
   Agent,
   AgentStatus,
@@ -71,6 +71,9 @@ interface OfficeState {
     details?: string;
   }) => void;
   clearEvents: () => void;
+
+  // Mission & Decomposing with Product Manager
+  createMissionDecomposed: (goal: string, requirements?: string) => Promise<void>;
 
   // Simulation automation triggers
   stepSimulation: () => void;
@@ -352,6 +355,92 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
   clearEvents: () => {
     set({ events: [] });
+  },
+
+  createMissionDecomposed: async (goal: string, requirements?: string) => {
+    const { agents, addEvent, addTask, updateAgent, soundEnabled } = get();
+    const pmAgent = agents.find((a) => a.role === 'product_manager') || agents[0];
+
+    // 1. Set Product Manager status into planning
+    if (pmAgent) {
+      updateAgent(pmAgent.id, {
+        status: 'planning',
+        locationState: 'at_desk',
+        idleActivity: 'standby',
+        currentTask: `Analyzing PRD: ${goal.slice(0, 40)}...`,
+        currentThought: `🎯 Product Manager mengurai Mission: "${goal}" menjadi sub-task tim teknis...`,
+        currentAction: 'Menjalankan inferensi Product Manager AI via 9Router Gateway',
+      });
+    }
+
+    addEvent({
+      type: 'start',
+      message: `🎯 [PM] ${pmAgent?.name || 'Product Manager'} memulai dekomposisi misi: "${goal}"`,
+      agentId: pmAgent?.id,
+      details: 'Mengurai PRD menjadi spesifikasi tugas terarah untuk Frontend, Backend, dan Intern.',
+    });
+    if (soundEnabled) playSound('blip');
+
+    try {
+      // 2. Panggil 9Router AI untuk memecah misi
+      const result = await decomposeMissionWithPM({
+        missionGoal: goal,
+        requirements,
+        model: pmAgent?.model || 'Architect',
+      });
+
+      // 3. Masukkan sub-task ke Kanban & Store
+      result.tasks.forEach((t, idx) => {
+        // Cari agen yang cocok dengan role task
+        const matchedAgent = agents.find((a) => a.role === t.role);
+
+        addTask({
+          title: t.title,
+          description: t.description,
+          priority: t.priority,
+          assignedToAgentId: matchedAgent?.id || null,
+          model: matchedAgent?.model || 'Daily',
+          estimatedTime: t.estimatedTime || 180,
+          tags: t.tags || [t.role.toUpperCase()],
+          subtasks: [
+            { id: `st-${idx}-1`, text: 'Spesifikasi & kontrak arsitektur', completed: false },
+            { id: `st-${idx}-2`, text: 'Implementasi kode solusi', completed: false },
+            { id: `st-${idx}-3`, text: 'Validasi testing & code review', completed: false },
+          ],
+        });
+      });
+
+      // 4. Update PM kembali ke idle / monitoring
+      if (pmAgent) {
+        updateAgent(pmAgent.id, {
+          status: 'idle',
+          currentThought: `✓ Berhasil memecah misi menjadi ${result.tasks.length} tiket sprint aktif.`,
+          currentAction: 'Memantau eksekusi engineer di dashboard',
+        });
+      }
+
+      addEvent({
+        type: 'complete',
+        message: `✓ [PM DECOMPOSITION COMPLETED]: ${result.tasks.length} tugas baru siap dikerjakan tim!`,
+        agentId: pmAgent?.id,
+        details: result.epicSummary,
+      });
+      if (soundEnabled) playSound('complete');
+    } catch (err) {
+      console.error('Error decomposing mission:', err);
+      if (pmAgent) {
+        updateAgent(pmAgent.id, {
+          status: 'idle',
+          currentThought: '⚠️ Gagal menghubungi 9Router, fallback ke manual backlog.',
+          currentAction: 'Standby di meja kerja',
+        });
+      }
+      addEvent({
+        type: 'error',
+        message: 'Gagal memecah misi secara otomatis via 9Router.',
+        details: String(err),
+      });
+    }
   },
 
   stepSimulation: () => {

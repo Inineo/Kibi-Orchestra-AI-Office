@@ -5,6 +5,7 @@ import { Agent, AgentStatus, IdleActivity, AgentLocation } from '../../types/off
 export interface SceneCallbacks {
   onSelectAgent: (agentId: string) => void;
   onHoverAgent: (agentId: string | null) => void;
+  onUserRotate?: () => void;
 }
 
 interface AnimatedCharacter {
@@ -79,6 +80,7 @@ export class ThreeOfficeScene {
   private cameraLerpFactor = 0.06;
 
   private hoveredAgentId: string | null = null;
+  private lastRaycastTime = 0;
   private clock = new THREE.Clock();
 
   // Shared Office Materials (Clean modern studio palette)
@@ -116,27 +118,44 @@ export class ThreeOfficeScene {
     this.camera = new THREE.PerspectiveCamera(44, aspect, 0.1, 120);
     this.camera.position.set(15, 14, 15);
 
-    // 3. Renderer setup
+    // 3. Renderer setup - Optimized for smooth 60fps & low GPU/CPU usage
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: window.devicePixelRatio < 2, // Non-retina gets antialias; high-DPI skips for 40% fillrate savings
       powerPreference: 'high-performance',
+      precision: 'mediump', // Optimizes shader calculations
+      depth: true,
+      stencil: false, // Saves memory buffer
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    // Cap pixelRatio to 1.25 on high-DPI screens to prevent GPU thermal throttling
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.BasicShadowMap; // Much faster than PCFSoftShadowMap
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.15;
     container.appendChild(this.renderer.domElement);
 
-    // 4. Controls setup
+    // 4. Controls setup - Free 360-degree rotation unlocked
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
-    this.controls.maxPolarAngle = Math.PI / 2 - 0.05;
-    this.controls.minDistance = 3.5;
-    this.controls.maxDistance = 42;
+    this.controls.enableRotate = true;
+    this.controls.enablePan = true;
+    this.controls.enableZoom = true;
+    // Allow wide polar angle so camera can look up and down freely without disappearing under floor
+    this.controls.minPolarAngle = 0.05;
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.02;
+    this.controls.minDistance = 2.5;
+    this.controls.maxDistance = 55;
     this.controls.target.set(0, 1.2, 0);
+
+    // Cancel any automatic camera interpolation when the user starts interacting/orbiting
+    this.controls.addEventListener('start', () => {
+      this.isTransitioningCamera = false;
+      if (this.callbacks.onUserRotate) {
+        this.callbacks.onUserRotate();
+      }
+    });
 
     // 5. Raycaster
     this.raycaster = new THREE.Raycaster();
@@ -166,9 +185,9 @@ export class ThreeOfficeScene {
     const sunLight = new THREE.DirectionalLight(0xfffbf2, 2.2);
     sunLight.position.set(-8, 24, -6);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.bias = -0.0004;
+    sunLight.shadow.mapSize.width = 1024; // 1024 is 4x lighter on VRAM & fill-rate than 2048
+    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.bias = -0.0003;
     sunLight.shadow.camera.near = 1;
     sunLight.shadow.camera.far = 50;
     sunLight.shadow.camera.left = -18;
@@ -1620,6 +1639,11 @@ export class ThreeOfficeScene {
   }
 
   private onPointerMove(event: PointerEvent) {
+    const now = performance.now();
+    // Throttle raycasting to ~30fps (every 32ms) to prevent mousemove freezing the frame
+    if (now - this.lastRaycastTime < 32) return;
+    this.lastRaycastTime = now;
+
     const rect = this.container.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -1704,6 +1728,10 @@ export class ThreeOfficeScene {
   // --- RENDER LOOP & REAL-TIME ANIMATIONS ---
   private animate() {
     this.animationFrameId = requestAnimationFrame(this.animate);
+
+    // Skip heavy GPU work if the browser tab is hidden/backgrounded
+    if (document.hidden) return;
+
     const delta = this.clock.getDelta();
     const time = this.clock.getElapsedTime();
 

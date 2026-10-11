@@ -33,6 +33,9 @@ export const OfficeCanvas: React.FC = () => {
     const scene = new ThreeOfficeScene(containerRef.current, {
       onSelectAgent: (id) => selectAgent(id),
       onHoverAgent: (id) => setHoveredAgent(id),
+      onUserRotate: () => {
+        setCameraPreset('free');
+      },
     });
     sceneRef.current = scene;
 

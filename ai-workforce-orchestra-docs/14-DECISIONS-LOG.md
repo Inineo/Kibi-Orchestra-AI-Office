@@ -29,6 +29,30 @@
 
 ## 🎯 Critical Decisions
 
+### [DEC-012] Python Orchestrator Backend with Obsidian Vault & Caveman Token Compression
+
+**Date**: 2026-10-11  
+**Status**: ✅ Accepted  
+**Deciders**: Fullstack & Architecture Team  
+
+**Context**:
+- Browser frontend cannot freely read/write local filesystem or Obsidian Markdown vaults without sandbox restrictions.
+- Agent chat history grows exponentially; passing full conversational context across agents wastes 60-80% tokens.
+- User requires local Obsidian integration, Caveman prompt compression, and external tool execution (Ponytail).
+
+**Decision**:
+1. Implement **Python FastAPI Backend** (`backend/`) on port 8000 as the orchestrator core.
+2. Integrate **Obsidian Vault Connector** (`services/obsidian.py`) to save missions, specs, and agent decisions directly as Markdown notes.
+3. Implement **Caveman Token Compression** (`services/caveman.py`) to strip conversational filler and compress agent hand-offs into telegraphic/dense context format.
+4. Keep **React + Three.js** as the interactive 3D visual frontend connected via REST/WebSocket.
+
+**Consequences**:
+- ✅ Direct, native access to local Obsidian Vault files.
+- ✅ Token consumption drastically reduced (saves 60-80% token costs).
+- ✅ Clean separation: Python handles execution & files; React handles 3D rendering.
+
+---
+
 ### [DEC-001] Orchestra as Separate Layer, Not 9Router Extension
 
 **Date**: 2026-10-05  

@@ -1,26 +1,22 @@
 import React from 'react';
 import { useOfficeStore } from '../../stores/useOfficeStore';
-import { AgentStatus, IdleActivity } from '../../types/office';
+import { fetchAvailableModels, RouterModel } from '../../lib/aiClient';
 import {
   X,
   Bot,
   Brain,
   Cpu,
   Zap,
-  CheckCircle2,
-  AlertTriangle,
-  Code2,
-  FileText,
-  Clock,
   Compass,
-  Coffee,
-  Smartphone,
-  Moon,
+  CheckCircle2,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 
 export const AgentDetailModal: React.FC = () => {
   const {
     agents,
+    tasks,
     selectedAgentId,
     selectAgent,
     focusAgent,
@@ -28,111 +24,60 @@ export const AgentDetailModal: React.FC = () => {
     addEvent,
   } = useOfficeStore();
 
+  const [availableModels, setAvailableModels] = React.useState<RouterModel[]>([]);
+
+  React.useEffect(() => {
+    fetchAvailableModels().then((mods) => {
+      if (mods.length > 0) setAvailableModels(mods);
+    });
+  }, []);
+
   const agent = agents.find((a) => a.id === selectedAgentId);
   if (!agent) return null;
 
-  const handleStatusOverride = (newStatus: AgentStatus) => {
-    updateAgent(agent.id, {
-      status: newStatus,
-      locationState: newStatus === 'idle' ? agent.locationState : 'at_desk',
-      currentThought:
-        newStatus === 'blocked'
-          ? 'Manual escalation: Agen mengalami kendala teknis / dependency blocker!'
-          : newStatus === 'planning'
-          ? 'Manual override: Agen sedang merancang arsitektur & dekomposisi sprint.'
-          : newStatus === 'coding'
-          ? 'Manual override: Agen sedang menulis kode implementasi di repository.'
-          : newStatus === 'testing'
-          ? 'Manual override: Agen sedang menjalankan stress test & fuzzing.'
-          : newStatus === 'reviewing'
-          ? 'Manual override: Agen sedang mengaudit kode Pull Request.'
-          : 'Agen bertransisi ke mode istirahat / standby.',
-    });
+  const currentTaskObj = agent.currentTaskId
+    ? tasks.find((t) => t.id === agent.currentTaskId)
+    : null;
 
-    addEvent({
-      type: newStatus === 'blocked' ? 'escalation' : 'progress',
-      message: `${agent.name} status diubah ke ${newStatus.toUpperCase()}`,
-      agentId: agent.id,
-    });
-  };
-
-  const handleIdleActivityOverride = (activity: IdleActivity) => {
-    let thought = '';
-    let action = '';
-    let location: 'at_desk' | 'lounge' | 'coffee_bar' | 'whiteboard' | 'walking' | 'chatting' = 'at_desk';
-
-    if (activity === 'coffee') {
-      thought = '☕ Sedang menikmati espresso hangat di coffee bar...';
-      action = 'Menikmati secangkir kopi di coffee bar (Coffee Break)';
-      location = 'coffee_bar';
-    } else if (activity === 'phone') {
-      thought = '📱 Duduk santai di sofa lounge mengecek smartphone...';
-      action = 'Duduk santai di sofa lounge';
-      location = 'lounge';
-    } else if (activity === 'stretch') {
-      thought = '🚶‍♂️ Mondar-mandir jalan santai di lorong meregangkan kaki & pikiran...';
-      action = 'Mondar-mandir santai di lorong kantor';
-      location = 'walking';
-    } else if (activity === 'nap') {
-      thought = '😴 Power Nap: Duduk santai di lounge memulihkan energi kognitif (Zzz)...';
-      action = 'Power Nap di sofa lounge';
-      location = 'lounge';
-    } else {
-      thought = 'Menunggu giliran tugas berikutnya di antrean meja...';
-      action = 'Standby rileks di kursi meja kerja';
-      location = 'at_desk';
+  // Status visual badge
+  const getStatusBadge = () => {
+    switch (agent.status) {
+      case 'coding':
+        return { label: 'Sedang Coding', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' };
+      case 'planning':
+        return { label: 'Sedang Merancang', badge: 'bg-blue-950 text-blue-300 border-blue-800' };
+      case 'reviewing':
+        return { label: 'Sedang Review', badge: 'bg-purple-950 text-purple-300 border-purple-800' };
+      case 'testing':
+        return { label: 'Sedang Testing', badge: 'bg-cyan-950 text-cyan-300 border-cyan-800' };
+      case 'blocked':
+        return { label: 'Terkendala (Blocked)', badge: 'bg-rose-950 text-rose-300 border-rose-800' };
+      case 'idle':
+      default:
+        return { label: 'Standby / Istirahat', badge: 'bg-zinc-900 text-zinc-400 border-zinc-800' };
     }
-
-    updateAgent(agent.id, {
-      status: 'idle',
-      idleActivity: activity,
-      locationState: location,
-      currentThought: thought,
-      currentAction: action,
-    });
-
-    addEvent({
-      type: 'message',
-      message: `${agent.name} beralih ke aktivitas: ${activity.toUpperCase()} (${location})`,
-      agentId: agent.id,
-    });
   };
 
-  const statusOptions: { key: AgentStatus; label: string }[] = [
-    { key: 'coding', label: '💻 Coding' },
-    { key: 'planning', label: '💭 Planning' },
-    { key: 'reviewing', label: '🔍 Review' },
-    { key: 'testing', label: '🧪 Testing' },
-    { key: 'blocked', label: '⚠️ Blocked' },
-    { key: 'idle', label: '💤 Idle' },
-  ];
-
-  const idleOptions: { key: IdleActivity; label: string; icon: string }[] = [
-    { key: 'coffee', label: 'Minum Kopi', icon: '☕' },
-    { key: 'phone', label: 'Cek Ponsel', icon: '📱' },
-    { key: 'stretch', label: 'Peregangan', icon: '🥱' },
-    { key: 'nap', label: 'Power Nap (Zzz)', icon: '😴' },
-    { key: 'standby', label: 'Standby Santai', icon: '💤' },
-  ];
+  const statusBadge = getStatusBadge();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150 font-sans">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header - Monochrome Minimalist */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col font-mono">
+        {/* Header - Minimalist */}
         <div className="p-4 flex items-center justify-between border-b border-zinc-850 bg-black">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-750 flex items-center justify-center text-white font-bold font-mono">
+            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white font-bold font-mono text-base shadow-inner">
               {agent.name.charAt(0)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-white font-mono">{agent.name}</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-zinc-900 text-zinc-200 border border-zinc-800">
-                  {agent.status}
+                <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${statusBadge.badge}`}>
+                  {statusBadge.label}
                 </span>
               </div>
               <p className="text-xs text-zinc-400 font-mono">
-                {agent.title} • <span className="text-zinc-200">{agent.model}</span>
+                {agent.title} • <span className="text-zinc-200 font-semibold">{agent.model}</span>
               </p>
             </div>
           </div>
@@ -143,32 +88,27 @@ export const AgentDetailModal: React.FC = () => {
                 focusAgent(agent.id);
                 selectAgent(null);
               }}
-              className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 rounded-lg text-xs font-mono transition flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 rounded-lg text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
+              title="Fokus kamera 3D ke posisi agen"
             >
               <Compass className="w-3.5 h-3.5 text-zinc-300" /> Fokus 3D
             </button>
             <button
               onClick={() => selectAgent(null)}
-              className="p-1.5 hover:bg-zinc-850 text-zinc-400 hover:text-white rounded-lg transition"
+              className="p-1.5 hover:bg-zinc-850 text-zinc-400 hover:text-white rounded-lg transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="p-5 overflow-y-auto space-y-4 text-xs font-mono">
-          {/* Quick Model & Name Config */}
+        {/* Simplified Body */}
+        <div className="p-5 space-y-4 text-xs font-mono">
+          {/* 1. Quick Config: Nama & Model API */}
           <div className="bg-zinc-900/40 border border-zinc-850 rounded-xl p-3.5 space-y-3">
-            <div className="text-[10px] uppercase text-zinc-400 font-bold flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-zinc-300" /> IDENTITAS & MODEL API
-              </span>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400">Nama AI:</label>
+                <label className="text-[10px] uppercase text-zinc-400 font-bold">Nama AI:</label>
                 <input
                   type="text"
                   defaultValue={agent.name}
@@ -178,7 +118,7 @@ export const AgentDetailModal: React.FC = () => {
                       updateAgent(agent.id, { name: val });
                       addEvent({
                         type: 'message',
-                        message: `Nama agen diubah menjadi: "${val}"`,
+                        message: `Nama agen diperbarui: "${val}"`,
                         agentId: agent.id,
                       });
                     }
@@ -186,13 +126,13 @@ export const AgentDetailModal: React.FC = () => {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') e.currentTarget.blur();
                   }}
-                  className="w-full bg-black border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-400 font-mono"
+                  className="w-full bg-black border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-500 font-mono"
                   placeholder="Nama AI..."
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400">Model API LLM:</label>
+                <label className="text-[10px] uppercase text-zinc-400 font-bold">Model API LLM:</label>
                 <select
                   value={agent.model}
                   onChange={(e) => {
@@ -204,103 +144,76 @@ export const AgentDetailModal: React.FC = () => {
                       agentId: agent.id,
                     });
                   }}
-                  className="w-full bg-black border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-400 font-mono cursor-pointer"
+                  className="w-full bg-black border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-500 font-mono cursor-pointer"
                 >
-                  <option value="Gemini 2.5 Flash">Gemini 2.5 Flash (Google)</option>
-                  <option value="Gemini 1.5 Pro">Gemini 1.5 Pro (Google)</option>
-                  <option value="Claude-3.5-Sonnet">Claude-3.5-Sonnet (Anthropic)</option>
-                  <option value="Claude-3.5-Haiku">Claude-3.5-Haiku (Anthropic)</option>
-                  <option value="GPT-4o">GPT-4o (OpenAI)</option>
-                  <option value="GPT-4o-mini">GPT-4o-mini (OpenAI)</option>
-                  <option value="DeepSeek-Coder-V2">DeepSeek-Coder-V2 (DeepSeek)</option>
-                  <option value="DeepSeek-R1">DeepSeek-R1 (DeepSeek)</option>
-                  <option value="Llama 3.3 70B">Llama 3.3 70B (Meta)</option>
+                  <optgroup label="Router Aliases (Direkomendasikan)">
+                    <option value="Daily">Daily (Fast & Smart)</option>
+                    <option value="Architect">Architect (High Reasoning)</option>
+                    <option value="Coding_Specialist">Coding_Specialist (Coder)</option>
+                    <option value="Reviewer">Reviewer (Auditor)</option>
+                    <option value="Fast">Fast (Low Latency)</option>
+                    <option value="gemini/gemini-3.7-flash">Gemini 3.7 Flash</option>
+                  </optgroup>
+                  {availableModels.length > 0 && (
+                    <optgroup label="Semua Model 9Router Aktif">
+                      {availableModels.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.id}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Current Activity & Cognitive Stream */}
+          {/* 2. Tugas Aktif & Pikiran Otomatis */}
           <div className="bg-zinc-900/40 border border-zinc-850 rounded-xl p-3.5 space-y-2">
-            <div className="text-[10px] uppercase text-zinc-400 flex items-center gap-1.5 font-bold">
-              <Brain className="w-3.5 h-3.5 text-zinc-300" /> AKTIVITAS & PIKIRAN SAAT INI
+            <div className="text-[10px] uppercase text-zinc-400 flex items-center justify-between font-bold">
+              <span className="flex items-center gap-1.5">
+                <Brain className="w-3.5 h-3.5 text-zinc-300" /> PIKIRAN & PEKERJAAN SAAT INI
+              </span>
+              {agent.currentTask && (
+                <span className="text-[9px] text-emerald-400">
+                  {agent.progress}%
+                </span>
+              )}
             </div>
+
             <div className="text-zinc-200 italic bg-black p-3 rounded-lg border border-zinc-850 text-xs">
               "{agent.currentThought}"
             </div>
-            <div className="text-zinc-400 text-[11px] pt-1">
-              Aksi Langsung: <span className="text-zinc-200">{agent.currentAction}</span>
+
+            <div className="text-zinc-400 text-[11px] pt-1 leading-relaxed">
+              <span className="text-zinc-500 font-bold">Aksi: </span>
+              <span className="text-zinc-200">{agent.currentAction}</span>
             </div>
           </div>
 
-          {/* Interactive Simulation: Casual Idle Activities */}
-          <div className="bg-zinc-900/40 border border-zinc-850 rounded-xl p-3.5 space-y-2">
-            <div className="text-[10px] uppercase text-zinc-400 font-bold flex items-center justify-between">
-              <span>AKTIVITAS SAAT IDLE / SANTAI (ANIMASI 3D)</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {idleOptions.map((opt) => (
-                <button
-                  key={opt.key}
-                  onClick={() => handleIdleActivityOverride(opt.key)}
-                  className={`p-2 rounded-lg text-xs font-mono transition text-left border flex items-center gap-2 cursor-pointer ${
-                    agent.status === 'idle' && agent.idleActivity === opt.key
-                      ? 'bg-zinc-100 text-zinc-950 font-bold border-white'
-                      : 'bg-black hover:bg-zinc-900 text-zinc-300 border-zinc-800'
-                  }`}
-                >
-                  <span>{opt.icon}</span>
-                  <span className="truncate">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Interactive Status Override */}
-          <div className="bg-zinc-900/40 border border-zinc-850 rounded-xl p-3.5 space-y-2">
-            <div className="text-[10px] uppercase text-zinc-400 font-bold">
-              STATUS KERJA AKTIF
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {statusOptions.map((opt) => (
-                <button
-                  key={opt.key}
-                  onClick={() => handleStatusOverride(opt.key)}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-mono transition cursor-pointer border ${
-                    agent.status === opt.key
-                      ? 'bg-zinc-100 text-zinc-950 font-bold border-white'
-                      : 'bg-black hover:bg-zinc-900 text-zinc-300 border-zinc-800'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Performance Metrics */}
-          <div className="grid grid-cols-4 gap-2">
-            <div className="bg-black border border-zinc-850 p-2.5 rounded-lg text-center">
-              <div className="text-[9px] text-zinc-400 uppercase font-mono">SELESAI</div>
-              <div className="text-base font-bold text-white mt-0.5">
+          {/* 3. Metrik Performa Real-Time */}
+          <div className="grid grid-cols-4 gap-2 pt-1">
+            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+              <div className="text-[9px] text-zinc-500 uppercase font-mono">SELESAI</div>
+              <div className="text-sm font-bold text-white mt-0.5">
                 {agent.metrics.tasksCompleted}
               </div>
             </div>
-            <div className="bg-black border border-zinc-850 p-2.5 rounded-lg text-center">
-              <div className="text-[9px] text-zinc-400 uppercase font-mono">TOKENS</div>
-              <div className="text-base font-bold text-white mt-0.5">
+            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+              <div className="text-[9px] text-zinc-500 uppercase font-mono">TOKENS</div>
+              <div className="text-sm font-bold text-white mt-0.5">
                 {(agent.metrics.tokensGenerated / 1000).toFixed(0)}k
               </div>
             </div>
-            <div className="bg-black border border-zinc-850 p-2.5 rounded-lg text-center">
-              <div className="text-[9px] text-zinc-400 uppercase font-mono">SPEED</div>
-              <div className="text-base font-bold text-white mt-0.5">
-                {agent.metrics.speedTokensSec} <span className="text-[9px] text-zinc-400">t/s</span>
+            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+              <div className="text-[9px] text-zinc-500 uppercase font-mono">SPEED</div>
+              <div className="text-sm font-bold text-white mt-0.5">
+                {agent.metrics.speedTokensSec} <span className="text-[9px] text-zinc-500">t/s</span>
               </div>
             </div>
-            <div className="bg-black border border-zinc-850 p-2.5 rounded-lg text-center">
-              <div className="text-[9px] text-zinc-400 uppercase font-mono">AKURASI</div>
-              <div className="text-base font-bold text-white mt-0.5">
+            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+              <div className="text-[9px] text-zinc-500 uppercase font-mono">AKURASI</div>
+              <div className="text-sm font-bold text-emerald-400 mt-0.5">
                 {agent.metrics.accuracyScore}%
               </div>
             </div>
