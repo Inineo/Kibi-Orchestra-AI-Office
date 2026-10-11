@@ -197,7 +197,8 @@ tags:
         file_name = f"{date_prefix}_{safe_title}.md"
         file_path = self.plan_path / file_name
 
-        tag_list = tags or ["antigravity", CURRENT_PROJECT_NAME.lower(), "plan", "mission"]
+        proj_slug = self.project_name.lower()
+        tag_list = tags or [f"{proj_slug}/plan", f"{proj_slug}/mission"]
         tag_str = " ".join([f"#{t}" for t in tag_list])
 
         task_lines = []
@@ -212,16 +213,16 @@ tags:
         content = f"""---
 id: {mission_id}
 date: {timestamp_str}
-project: {CURRENT_PROJECT_NAME}
+project: {self.project_name}
 type: project-plan
 tags: {tag_str}
-location: {CURRENT_PROJECT_NAME}/plan/{file_name}
+location: {self.project_name}/plan/{file_name}
 ---
 
 # 🚀 Plan Misi: {goal}
 
-> **Project Hub**: [[{CURRENT_PROJECT_NAME}-Index]]  
-> **Folder Path**: `antigravity/{CURRENT_PROJECT_NAME}/plan/`  
+> **Project Hub**: [[{self.project_name}-Index]]  
+> **Folder Path**: `antigravity/{self.project_name}/plan/`  
 > **Status**: In Progress  
 > **Tags**: {tag_str}  
 
@@ -251,23 +252,25 @@ location: {CURRENT_PROJECT_NAME}/plan/{file_name}
         content: str,
         tags: Optional[List[str]] = None
     ) -> Path:
-        """Menyimpan log percakapan / ekspor ChatGPT ke subfolder conversation/ tanpa link liar."""
+        """Menyimpan log percakapan / ekspor ChatGPT ke subfolder conversation/ dengan nested tag."""
         safe_title = self._sanitize_filename(title)
         file_name = f"{safe_title}.md"
         file_path = self.conversation_path / file_name
         
+        proj_slug = self.project_name.lower()
+        tag_list = tags or [f"{proj_slug}/conversation"]
         header = f"""---
-project: {CURRENT_PROJECT_NAME}
+project: {self.project_name}
 type: conversation-log
 date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-tags: {" ".join([f"#{t}" for t in (tags or ["antigravity", "conversation"])])}
-location: {CURRENT_PROJECT_NAME}/conversation/{file_name}
+tags: {" ".join([f"#{t}" for t in tag_list])}
+location: {self.project_name}/conversation/{file_name}
 ---
 
 # 💬 {title}
 
-> **Project Hub**: [[{CURRENT_PROJECT_NAME}-Index]]  
-> **Folder Path**: `antigravity/{CURRENT_PROJECT_NAME}/conversation/`  
+> **Project Hub**: [[{self.project_name}-Index]]  
+> **Folder Path**: `antigravity/{self.project_name}/conversation/`  
 
 ---
 
