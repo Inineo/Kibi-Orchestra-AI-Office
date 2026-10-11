@@ -1,0 +1,86 @@
+import json
+import requests
+from typing import Dict, Any, List, Optional
+from config import NINEROUTER_URL, NINEROUTER_API_KEY, DEFAULT_MODEL
+from services.caveman import CavemanCompressor
+
+class WorkflowOrchestrator:
+    """
+    Menghubungkan agen AI melalui gateway 9Router,
+    menggunakan CavemanCompressor untuk efisiensi token.
+    """
+
+    def __init__(self):
+        self.router_url = NINEROUTER_URL
+        self.api_key = NINEROUTER_API_KEY
+
+    def call_ai(self, model: str, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+        url = f"{self.router_url}/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        payload = {
+            "model": model or DEFAULT_MODEL,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": 1500
+        }
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=60)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data["choices"][0]["message"]["content"]
+            else:
+                return f"[Error 9Router: {resp.status_code}] {resp.text}"
+        except Exception as e:
+            return f"[Error Request]: {str(e)}"
+
+    def decompose_mission(self, mission_goal: str, model: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Product Manager memecah misi menjadi subtasks
+        dan outputnya dikompres secara padat (Caveman).
+        """
+        system_prompt = (
+            "You are a Lead Product Manager in an AI software agency. "
+            "Decompose the user's mission into clear, actionable subtasks for roles: "
+            "'product_manager', 'frontend', 'backend', 'intern'. "
+            "Respond ONLY with a JSON object containing: "
+            "{\"plan\": \"brief strategy\", \"tasks\": [{\"title\": \"...\", \"assignedRole\": \"frontend|backend|intern\", \"estimatedMinutes\": 15}]}"
+        )
+
+        user_content = f"Mission: {mission_goal}"
+
+        raw_response = self.call_ai(
+            model=model or DEFAULT_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            temperature=0.3
+        )
+
+        # Parsing JSON
+        try:
+            clean = raw_response.strip()
+            if "```json" in clean:
+                clean = clean.split("```json")[1].split("```")[0].strip()
+            elif "```" in clean:
+                clean = clean.split("```")[1].split("```")[0].strip()
+            
+            parsed = json.loads(clean)
+            # Terapkan kompresi Caveman pada teks plan
+            parsed["plan"] = CavemanCompressor.compress_text(parsed.get("plan", ""))
+            return parsed
+        except Exception:
+            return {
+                "plan": CavemanCompressor.compress_text(raw_response),
+                "tasks": [
+                    {"title": "Implement Core Logic", "assignedRole": "backend", "estimatedMinutes": 30},
+                    {"title": "Implement User Interface", "assignedRole": "frontend", "estimatedMinutes": 30},
+                    {"title": "Verify & Document", "assignedRole": "intern", "estimatedMinutes": 15}
+                ]
+            }
