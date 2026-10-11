@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOfficeStore } from '../../stores/useOfficeStore';
-import { Agent, AgentDepartment } from '../../types/office';
+import { Agent, AgentDepartment, AgentRole } from '../../types/office';
+import { fetchAvailableModels, RouterModel } from '../../lib/aiClient';
 import {
   Cpu,
   Bot,
@@ -15,18 +16,39 @@ import {
   ExternalLink,
   Shield,
   Zap,
+  RefreshCw,
+  UserCheck,
 } from 'lucide-react';
 
+// Preset Model dasar (Fallback bila 9Router belum online)
 const PRESET_MODELS = [
-  { id: 'Gemini 2.5 Flash', provider: 'Google', tier: 'Fast & Smart', badge: 'bg-blue-950 text-blue-300 border-blue-800' },
-  { id: 'Gemini 1.5 Pro', provider: 'Google', tier: 'High Reasoning', badge: 'bg-blue-950 text-blue-300 border-blue-800' },
-  { id: 'Claude-3.5-Sonnet', provider: 'Anthropic', tier: 'Architecture & Code', badge: 'bg-amber-950 text-amber-300 border-amber-800' },
-  { id: 'Claude-3.5-Haiku', provider: 'Anthropic', tier: 'Ultra Fast', badge: 'bg-amber-950 text-amber-300 border-amber-800' },
-  { id: 'GPT-4o', provider: 'OpenAI', tier: 'Flagship Multimodal', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' },
-  { id: 'GPT-4o-mini', provider: 'OpenAI', tier: 'Lightweight', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' },
-  { id: 'DeepSeek-Coder-V2', provider: 'DeepSeek', tier: 'Code Specialist', badge: 'bg-purple-950 text-purple-300 border-purple-800' },
-  { id: 'DeepSeek-R1', provider: 'DeepSeek', tier: 'Reasoning Specialist', badge: 'bg-purple-950 text-purple-300 border-purple-800' },
-  { id: 'Llama 3.3 70B', provider: 'Meta', tier: 'Open Source', badge: 'bg-indigo-950 text-indigo-300 border-indigo-800' },
+  { id: 'Daily', provider: '9Router Alias', tier: 'Fast & Smart General', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' },
+  { id: 'Architect', provider: '9Router Alias', tier: 'High Reasoning & Architecture', badge: 'bg-purple-950 text-purple-300 border-purple-800' },
+  { id: 'Coding_Specialist', provider: '9Router Alias', tier: 'Code Generation & Refactor', badge: 'bg-blue-950 text-blue-300 border-blue-800' },
+  { id: 'Reviewer', provider: '9Router Alias', tier: 'Code Review & QA Validation', badge: 'bg-amber-950 text-amber-300 border-amber-800' },
+  { id: 'Fast', provider: '9Router Alias', tier: 'Ultra-low Latency Quick Tasks', badge: 'bg-cyan-950 text-cyan-300 border-cyan-800' },
+  { id: 'Reasoning', provider: '9Router Alias', tier: 'Deep Reasoning & Logic Proofs', badge: 'bg-violet-950 text-violet-300 border-violet-800' },
+  { id: 'gemini/gemini-3.7-flash', provider: 'Google', tier: 'Gemini 3.7 Flash', badge: 'bg-blue-950 text-blue-300 border-blue-800' },
+  { id: 'gemini/gemini-3.8-flash', provider: 'Google', tier: 'Gemini 3.8 Flash', badge: 'bg-blue-950 text-blue-300 border-blue-800' },
+  { id: 'ag/claude-sonnet-5-5', provider: 'Anthropic', tier: 'Claude Sonnet 5.5', badge: 'bg-amber-950 text-amber-300 border-amber-800' },
+  { id: 'cx/gpt-6.1-sol', provider: 'OpenAI', tier: 'GPT 6.1 Sol (Frontier)', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' },
+  { id: 'kr/deepseek-3.2-agentic', provider: 'DeepSeek', tier: 'DeepSeek 3.2 Agentic', badge: 'bg-purple-950 text-purple-300 border-purple-800' },
+  { id: 'ollama/gpt-oss:120b', provider: 'Ollama Local', tier: 'GPT-OSS 120B Local GPU', badge: 'bg-zinc-800 text-zinc-200 border-zinc-700' },
+];
+
+export const ROLE_OPTIONS: { id: AgentRole; label: string; department: AgentDepartment }[] = [
+  { id: 'product_manager', label: 'Product Manager (PM)', department: 'orchestra' },
+  { id: 'frontend', label: 'Front End Engineer', department: 'developer' },
+  { id: 'backend', label: 'Back End Engineer', department: 'developer' },
+  { id: 'intern', label: 'Software Engineer Intern', department: 'developer' },
+  { id: 'strategist', label: 'Workforce Strategist', department: 'orchestra' },
+  { id: 'architect', label: 'Systems Architect', department: 'developer' },
+  { id: 'developer', label: 'Full-Stack Developer', department: 'developer' },
+  { id: 'reviewer', label: 'Code Reviewer & QA', department: 'writer' },
+  { id: 'tester', label: 'QA Automation Tester', department: 'developer' },
+  { id: 'devops', label: 'Cloud & DevOps Engineer', department: 'developer' },
+  { id: 'planner', label: 'Technical Writer / Spec Lead', department: 'writer' },
+  { id: 'security', label: 'Security & Policy Auditor', department: 'writer' },
 ];
 
 export const AgentSettingsTab: React.FC = () => {
@@ -36,6 +58,22 @@ export const AgentSettingsTab: React.FC = () => {
   const [selectedDept, setSelectedDept] = useState<AgentDepartment | 'all'>('all');
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [customModelInputs, setCustomModelInputs] = useState<Record<string, string>>({});
+  const [availableModels, setAvailableModels] = useState<RouterModel[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  // Fetch all 9Router models on load
+  const loadModels = async () => {
+    setLoadingModels(true);
+    const models = await fetchAvailableModels();
+    if (models.length > 0) {
+      setAvailableModels(models);
+    }
+    setLoadingModels(false);
+  };
+
+  useEffect(() => {
+    loadModels();
+  }, []);
 
   const showSavedNotice = (agentName: string) => {
     setSavedNotice(`Pengaturan untuk "${agentName}" berhasil disimpan!`);
@@ -56,6 +94,17 @@ export const AgentSettingsTab: React.FC = () => {
     if (target) showSavedNotice(target.name);
   };
 
+  const handleRoleChange = (agentId: string, newRole: AgentRole) => {
+    const roleMeta = ROLE_OPTIONS.find((r) => r.id === newRole);
+    updateAgent(agentId, {
+      role: newRole,
+      department: roleMeta?.department || 'developer',
+      title: roleMeta?.label.split(' (')[0] || newRole,
+    });
+    const target = agents.find((a) => a.id === agentId);
+    if (target) showSavedNotice(`${target.name} diubah menjadi role ${roleMeta?.label || newRole}`);
+  };
+
   const handleModelChange = (agentId: string, newModel: string) => {
     updateAgent(agentId, { model: newModel });
     const target = agents.find((a) => a.id === agentId);
@@ -72,17 +121,17 @@ export const AgentSettingsTab: React.FC = () => {
   };
 
   const resetAllToDefaults = () => {
-    // Reset defaults based on department & role
     agents.forEach((ag) => {
-      let defaultModel = 'Gemini 1.5 Pro';
-      if (ag.department === 'orchestra') defaultModel = 'Claude-3.5-Sonnet';
-      else if (ag.role === 'developer' || ag.role === 'devops') defaultModel = 'DeepSeek-Coder-V2';
-      else if (ag.role === 'architect' || ag.role === 'tester') defaultModel = 'GPT-4o';
-      else if (ag.role === 'reviewer') defaultModel = 'Claude-3.5-Sonnet';
+      let defaultModel = 'Daily';
+      if (ag.role === 'product_manager' || ag.department === 'orchestra') defaultModel = 'Architect';
+      else if (ag.role === 'backend' || ag.role === 'developer') defaultModel = 'Coding_Specialist';
+      else if (ag.role === 'frontend') defaultModel = 'Daily';
+      else if (ag.role === 'intern' || ag.role === 'tester' || ag.role === 'devops') defaultModel = 'Fast';
+      else if (ag.role === 'reviewer') defaultModel = 'Reviewer';
 
       updateAgent(ag.id, { model: defaultModel });
     });
-    setSavedNotice('Semua model API berhasil dikembalikan ke preset optimal!');
+    setSavedNotice('Semua model API berhasil dikembalikan ke preset optimal 9Router!');
     setTimeout(() => setSavedNotice(null), 3000);
   };
 
@@ -114,28 +163,37 @@ export const AgentSettingsTab: React.FC = () => {
             </p>
           </div>
 
-          {/* Quick Presets */}
+          {/* Quick Presets & Refresh */}
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={loadModels}
+              disabled={loadingModels}
+              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Ambil ulang daftar model langsung dari 9Router"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loadingModels ? 'animate-spin' : ''}`} />
+              <span>{availableModels.length > 0 ? `${availableModels.length} Model Aktif` : 'Sinkron 9Router'}</span>
+            </button>
             <span className="text-xs text-zinc-400 font-mono uppercase tracking-wider mr-1 hidden lg:inline">
               Preset Cepat:
             </span>
             <button
-              onClick={() => applyAllModelPreset('Gemini 2.5 Flash', 'Gemini 2.5 Flash')}
+              onClick={() => applyAllModelPreset('Daily', '9Router Daily')}
               className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-200 transition cursor-pointer"
             >
-              Semua Gemini
+              Semua Daily
             </button>
             <button
-              onClick={() => applyAllModelPreset('Claude-3.5-Sonnet', 'Claude 3.5 Sonnet')}
+              onClick={() => applyAllModelPreset('Coding_Specialist', 'Coding Specialist')}
               className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-200 transition cursor-pointer"
             >
-              Semua Claude
+              Semua Coder
             </button>
             <button
-              onClick={() => applyAllModelPreset('GPT-4o', 'GPT-4o')}
+              onClick={() => applyAllModelPreset('gemini/gemini-3.7-flash', 'Gemini 3.7 Flash')}
               className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-200 transition cursor-pointer"
             >
-              Semua GPT-4o
+              Gemini 3.7 Flash
             </button>
             <button
               onClick={resetAllToDefaults}
@@ -296,7 +354,40 @@ export const AgentSettingsTab: React.FC = () => {
                     />
                   </div>
 
-                  {/* Field 2: Jabatan / Peran */}
+                  {/* Field 2: Role / Peran Tim */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <UserCheck className="h-3 w-3 text-zinc-400" />
+                        Role Tim
+                      </span>
+                      <span className="text-[10px] text-zinc-400">PM, Frontend, Backend, Intern</span>
+                    </label>
+                    <select
+                      value={agent.role}
+                      onChange={(e) => handleRoleChange(agent.id, e.target.value as AgentRole)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition cursor-pointer"
+                    >
+                      <optgroup label="Role Utama">
+                        <option value="product_manager">🎯 Product Manager (PM)</option>
+                        <option value="frontend">💻 Front End Engineer</option>
+                        <option value="backend">⚙️ Back End Engineer</option>
+                        <option value="intern">🌱 Software Engineer Intern</option>
+                      </optgroup>
+                      <optgroup label="Role Spesialis Lainnya">
+                        <option value="strategist">Workforce Strategist</option>
+                        <option value="architect">Systems Architect</option>
+                        <option value="developer">Full-Stack Developer</option>
+                        <option value="reviewer">Code Reviewer & QA</option>
+                        <option value="tester">QA Automation Tester</option>
+                        <option value="devops">Cloud & DevOps Engineer</option>
+                        <option value="planner">Technical Writer / Spec Lead</option>
+                        <option value="security">Security & Policy Auditor</option>
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  {/* Field 3: Jabatan / Spesialisasi Custom Text */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
                       Jabatan / Spesialisasi
@@ -320,28 +411,25 @@ export const AgentSettingsTab: React.FC = () => {
                     />
                   </div>
 
-                  {/* Field 3: API Model AI */}
+                  {/* Field 4: API Model AI (Menampilkan semua model dari 9Router) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Sparkles className="h-3 w-3 text-zinc-400" />
-                        API Model AI
+                        API Model AI ({availableModels.length > 0 ? `${availableModels.length} Tersedia` : '9Router'})
                       </label>
-                      {currentPreset && (
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${currentPreset.badge}`}>
-                          {currentPreset.provider}
-                        </span>
-                      )}
+                      <span className="text-[10px] font-mono text-zinc-400 truncate max-w-[130px]">
+                        {agent.model}
+                      </span>
                     </div>
 
                     <select
-                      value={isCustom ? '__custom__' : agent.model}
+                      value={agent.model}
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val !== '__custom__') {
                           handleModelChange(agent.id, val);
                         } else {
-                          // keep custom model
                           setCustomModelInputs((prev) => ({
                             ...prev,
                             [agent.id]: agent.model,
@@ -350,23 +438,51 @@ export const AgentSettingsTab: React.FC = () => {
                       }}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition cursor-pointer"
                     >
-                      <optgroup label="Model Populer & Unggulan">
-                        {PRESET_MODELS.map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.id} — ({m.provider} • {m.tier})
-                          </option>
-                        ))}
+                      {/* 1. Kategori 9Router Smart Aliases */}
+                      <optgroup label="9Router Router Aliases (Direkomendasikan)">
+                        <option value="Daily">Daily — (Fast & Smart General)</option>
+                        <option value="Architect">Architect — (High Reasoning & Architecture)</option>
+                        <option value="Coding_Specialist">Coding_Specialist — (Code Generation & Refactor)</option>
+                        <option value="Reviewer">Reviewer — (Code Review & QA Validation)</option>
+                        <option value="Fast">Fast — (Ultra-low Latency Quick Tasks)</option>
+                        <option value="Reasoning">Reasoning — (Deep Reasoning & Logic Proofs)</option>
+                        <option value="Deep_Reviewer">Deep_Reviewer — (Deep Code Audits)</option>
+                        <option value="Opus">Opus — (Heavy Context / Synthesis)</option>
                       </optgroup>
+
+                      {/* 2. Semua Model Aktif dari 9Router Gateway */}
+                      {availableModels.length > 0 ? (
+                        <>
+                          <optgroup label="Semua Model Aktif (9Router Gateway)">
+                            {availableModels
+                              .filter((m) => !['Daily', 'Architect', 'Coding_Specialist', 'Reviewer', 'Fast', 'Reasoning', 'Deep_Reviewer', 'Opus'].includes(m.id))
+                              .map((m) => (
+                                <option key={m.id} value={m.id}>
+                                  {m.id} {m.owned_by ? `[${m.owned_by}]` : ''}
+                                </option>
+                              ))}
+                          </optgroup>
+                        </>
+                      ) : (
+                        <optgroup label="Model Populer & Unggulan">
+                          {PRESET_MODELS.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.id} — ({m.provider})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+
                       <option value="__custom__">Custom Model Lainnya...</option>
                     </select>
 
                     {/* Custom Model String Input (if custom selected) */}
-                    {(isCustom || customModelInputs[agent.id] !== undefined) && (
+                    {customModelInputs[agent.id] !== undefined && (
                       <div className="mt-2">
                         <input
                           type="text"
                           defaultValue={agent.model}
-                          placeholder="Ketik nama model custom (e.g. o3-mini, gemini-2.5-pro)..."
+                          placeholder="Ketik nama model custom..."
                           onBlur={(e) => {
                             const val = e.target.value.trim();
                             if (val && val !== agent.model) {

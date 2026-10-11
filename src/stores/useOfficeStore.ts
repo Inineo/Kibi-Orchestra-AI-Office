@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { executeAgentTaskStep } from '../lib/aiClient';
 import {
   Agent,
   AgentStatus,
@@ -494,9 +495,73 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       }
 
       if (!taskCompleted) {
+        // Trigger real AI call to 9Router asynchronously to generate thoughts and actions
+        if (luckyAgent.currentTaskId && Math.random() > 0.5) {
+          const associatedTask = tasks.find((t) => t.id === luckyAgent.currentTaskId);
+          if (associatedTask) {
+            executeAgentTaskStep({
+              agentName: luckyAgent.name,
+              agentRole: luckyAgent.role,
+              agentModel: luckyAgent.model,
+              taskTitle: associatedTask.title,
+              taskDescription: associatedTask.description,
+              taskKey: associatedTask.key,
+              stage: luckyAgent.role === 'developer' ? 'implement' : luckyAgent.role === 'reviewer' ? 'review' : 'plan',
+            })
+              .then((aiRes) => {
+                get().updateAgent(luckyAgent.id, {
+                  currentThought: `🤖 [9Router AI]: ${aiRes.thought}`,
+                  currentAction: aiRes.action,
+                  metrics: {
+                    ...luckyAgent.metrics,
+                    tokensGenerated: luckyAgent.metrics.tokensGenerated + aiRes.tokensGenerated,
+                  },
+                });
+
+                if (aiRes.artifactCode) {
+                  set((s) => ({
+                    tasks: s.tasks.map((t) =>
+                      t.id === associatedTask.id
+                        ? {
+                            ...t,
+                            artifacts: [
+                              ...(t.artifacts || []),
+                              {
+                                name: `${associatedTask.key}_output.ts`,
+                                type: 'code' as const,
+                                path: `/artifacts/${associatedTask.key}_output.ts`,
+                              },
+                            ],
+                          }
+                        : t
+                    ),
+                  }));
+                }
+              })
+              .catch((err) => {
+                console.warn('Fallback simulation due to 9Router error:', err);
+              });
+          }
+        }
+
         // Dynamic realistic cognitive thoughts based on role
         let nextThought = 'Mengoptimalkan AST bytecode dan validasi schema...';
-        if (luckyAgent.role === 'developer') {
+        if (luckyAgent.role === 'product_manager') {
+          const pmThoughts = [
+            'Meninjau user journey funnel dan acceptance criteria sprint...',
+            'Menyelaraskan OKR tim engineering dengan roadmap produk...',
+            'Menganalisis feedback pengguna dan memecah tiket epics...',
+          ];
+          nextThought = pmThoughts[Math.floor(Math.random() * pmThoughts.length)];
+        } else if (luckyAgent.role === 'frontend') {
+          const feThoughts = [
+            'Mengoptimalkan render pipeline komponen React dan state hook...',
+            'Menyempurnakan responsive layout dan estetika antarmuka UI...',
+            'Membangun Three.js scene canvas shader dan material visual...',
+            'Menghubungkan websocket store ke visual reactive board...',
+          ];
+          nextThought = feThoughts[Math.floor(Math.random() * feThoughts.length)];
+        } else if (luckyAgent.role === 'backend' || luckyAgent.role === 'developer') {
           const devThoughts = [
             'Menulis unit tests crypto di /src/auth/jwt.service.ts...',
             'Menyusun skema JWKS asymmetric public key rotation...',
@@ -504,6 +569,13 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
             'Mengoptimalkan bytecode traversal dan garbage collection...',
           ];
           nextThought = devThoughts[Math.floor(Math.random() * devThoughts.length)];
+        } else if (luckyAgent.role === 'intern') {
+          const internThoughts = [
+            'Mempelajari modul codebase dan membuat regression tests...',
+            'Membantu memvalidasi edge-case error boundary dan logging...',
+            'Menulis dokumentasi panduan onboarding developer junior...',
+          ];
+          nextThought = internThoughts[Math.floor(Math.random() * internThoughts.length)];
         } else if (luckyAgent.role === 'reviewer') {
           const revThoughts = [
             'Memeriksa CWE-208 timing discrepancy pada token comparison...',
@@ -542,10 +614,16 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
     // --- 3. AUTONOMOUS DISPATCH: Idle developer takes pending task ---
     if (idleAgents.length > 0 && pendingTasks.length > 0) {
-      // Prefer developer or devops for pending engineering tasks
+      // Prefer frontend, backend, developer, devops, intern for engineering tasks
       const devCandidate =
-        idleAgents.find((a) => a.role === 'developer' || a.role === 'devops') ||
-        idleAgents[0];
+        idleAgents.find(
+          (a) =>
+            a.role === 'frontend' ||
+            a.role === 'backend' ||
+            a.role === 'developer' ||
+            a.role === 'intern' ||
+            a.role === 'devops'
+        ) || idleAgents[0];
       const nextTask = pendingTasks[0];
 
       get().updateAgent(devCandidate.id, {

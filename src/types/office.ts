@@ -1,4 +1,8 @@
 export type AgentRole =
+  | 'product_manager'
+  | 'frontend'
+  | 'backend'
+  | 'intern'
   | 'strategist'
   | 'architect'
   | 'planner'
