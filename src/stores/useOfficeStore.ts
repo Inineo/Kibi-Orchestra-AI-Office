@@ -701,22 +701,47 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       }
     }
 
-    // --- 3. AUTONOMOUS DISPATCH: Idle developer takes pending task ---
+    // --- 3. AUTONOMOUS DISPATCH: Direct task assignment to the matching Role Agent ---
     if (idleAgents.length > 0 && pendingTasks.length > 0) {
-      // Prefer frontend, backend, developer, devops, intern for engineering tasks
-      const devCandidate =
-        idleAgents.find(
-          (a) =>
-            a.role === 'frontend' ||
-            a.role === 'backend' ||
-            a.role === 'developer' ||
-            a.role === 'intern' ||
-            a.role === 'devops'
+      // Find a pending task that has an exact role match among idle agents
+      let targetTask = pendingTasks.find((t) => {
+        if (t.assignedToAgentId) {
+          return idleAgents.some((a) => a.id === t.assignedToAgentId);
+        }
+        // Match by tag or title prefix [FE], [BE], [QA], [Intern]
+        return idleAgents.some((a) => 
+          (t.tags && t.tags.some(tag => tag.toLowerCase() === a.role.toLowerCase())) ||
+          (t.title.toLowerCase().includes(`[${a.role.toLowerCase()}]`))
+        );
+      }) || pendingTasks[0];
+
+      let devCandidate: typeof idleAgents[0] | undefined;
+      if (targetTask.assignedToAgentId) {
+        devCandidate = idleAgents.find((a) => a.id === targetTask.assignedToAgentId);
+      }
+      if (!devCandidate) {
+        // Find matching role based on tags or title
+        devCandidate = idleAgents.find((a) => 
+          (targetTask.tags && targetTask.tags.some(tag => tag.toLowerCase() === a.role.toLowerCase())) ||
+          (targetTask.title.toLowerCase().includes(`[${a.role.toLowerCase()}]`))
+        );
+      }
+      if (!devCandidate) {
+        // Fallback to suitable role if no direct match
+        devCandidate = idleAgents.find(
+          (a) => a.role === 'frontend' || a.role === 'backend' || a.role === 'qa' || a.role === 'intern'
         ) || idleAgents[0];
-      const nextTask = pendingTasks[0];
+      }
+
+      const nextTask = targetTask;
 
       get().updateAgent(devCandidate.id, {
-        status: devCandidate.role === 'reviewer' ? 'reviewing' : devCandidate.role === 'tester' ? 'testing' : 'coding',
+        status:
+          devCandidate.role === 'qa' || devCandidate.role === 'tester'
+            ? 'testing'
+            : devCandidate.role === 'reviewer'
+            ? 'reviewing'
+            : 'coding',
         idleActivity: 'standby',
         locationState: 'at_desk',
         currentTask: nextTask.title,

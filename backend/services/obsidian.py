@@ -15,8 +15,9 @@ class ObsidianService:
         └── docs\
     """
 
-    def __init__(self, project_path: Optional[Path] = None):
-        self.project_path = project_path or PROJECT_VAULT_PATH
+    def __init__(self, project_path: Optional[Path] = None, project_name: Optional[str] = None):
+        self.project_name = project_name or CURRENT_PROJECT_NAME
+        self.project_path = project_path or (OBSIDIAN_VAULT_PATH / self.project_name)
         self.plan_path = self.project_path / "plan"
         self.conversation_path = self.project_path / "conversation"
         self.docs_path = self.project_path / "docs"
@@ -25,6 +26,151 @@ class ObsidianService:
         self.plan_path.mkdir(parents=True, exist_ok=True)
         self.conversation_path.mkdir(parents=True, exist_ok=True)
         self.docs_path.mkdir(parents=True, exist_ok=True)
+
+    def initialize_project(self, project_name: str, description: str = "") -> Dict[str, Any]:
+        """
+        Tugas Otomatis AI Intern:
+        Membuat struktur folder proyek baru dan file-file starter Markdown standar di Obsidian:
+        antigravity/<project_name>/
+            ├── <project_name>-Index.md   (Pusat navigasi)
+            ├── plan/                     (Folder rencana)
+            ├── conversation/             (Folder chat & ekspor ChatGPT)
+            └── docs/                     (Folder SOP & dokumentasi teknis)
+        """
+        clean_name = self._sanitize_filename(project_name)
+        proj_dir = OBSIDIAN_VAULT_PATH / clean_name
+        plan_dir = proj_dir / "plan"
+        conv_dir = proj_dir / "conversation"
+        docs_dir = proj_dir / "docs"
+
+        proj_dir.mkdir(parents=True, exist_ok=True)
+        plan_dir.mkdir(parents=True, exist_ok=True)
+        conv_dir.mkdir(parents=True, exist_ok=True)
+        docs_dir.mkdir(parents=True, exist_ok=True)
+
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # 1. Buat Index Hub Proyek
+        index_file = proj_dir / f"{clean_name}-Index.md"
+        if not index_file.exists():
+            index_content = f"""---
+id: {clean_name.lower()}-index
+title: {clean_name} Project & Knowledge Hub
+project: {clean_name}
+date: {now_str}
+tags:
+  - antigravity
+  - {clean_name.lower()}
+  - index
+---
+
+# 🌐 {clean_name} Knowledge Hub
+
+Selamat datang di ruang kerja proyek **{clean_name}**.
+
+> **Deskripsi**: {description or 'Proyek baru yang diinisialisasi oleh AI Intern.'}  
+> **Tanggal Inisialisasi**: {now_str}  
+> **Dikelola Oleh**: AI Intern (Alex Novak) & Kibi Orchestra Squad  
+
+---
+
+## 📂 Struktur Direktori Proyek
+
+```
+D:\\Obsidian\\Obsidian Memories\\antigravity\\{clean_name}\\
+│
+├── plan/             --> Menyimpan dokumen rencana misi & sprint teknis
+├── conversation/     --> Menyimpan log obrolan & ekspor chat ChatGPT browser
+└── docs/             --> Menyimpan pedoman SOP tim & dokumentasi referensi penting
+```
+
+---
+
+## 📌 Dokumen Inti Penting
+- 🗺️ Rencana Implementasi: `plan/13-IMPLEMENTATION-PLAN.md`
+- 🛡️ SOP Peran AI: `docs/Role-Standard-Operating-Procedures.md`
+- 🔒 SOP Keamanan Git: `docs/Git-Intern-Safety-Procedure.md`
+"""
+            with open(index_file, "w", encoding="utf-8") as f:
+                f.write(index_content.strip() + "\n")
+
+        # 2. Generate SOP Standar khusus project baru (terisolasi 100%, link ke index project ini)
+        sop_target = docs_dir / "Role-Standard-Operating-Procedures.md"
+        if not sop_target.exists():
+            sop_content = f"""---
+id: {clean_name.lower()}-role-sops
+title: SOP Peran AI Workforce ({clean_name})
+project: {clean_name}
+location: {clean_name}/docs/Role-Standard-Operating-Procedures.md
+date: {now_str}
+tags:
+  - antigravity
+  - {clean_name.lower()}
+  - sops
+---
+
+# 📜 Standar Operasional Prosedur (SOP) Role AI Workforce - {clean_name}
+
+> **Folder Path**: `antigravity/{clean_name}/docs/`  
+> **Index Utama**: [[{clean_name}-Index]]  
+
+---
+
+## 🧭 1. Product Manager (PM)
+- Mengurai Mission Goal project {clean_name}.
+- PM Review Gate: Verifikasi akhir kelulusan misi.
+
+## ⚙️ 2. Back End Engineer
+- API contract & business logic untuk {clean_name}.
+
+## 🎨 3. Front End Engineer
+- Antarmuka visual UI/UX untuk {clean_name}.
+
+## 🧪 4. QA Automation Engineer
+- Pengujian otomatis, edge-case, dan regresi {clean_name}.
+
+## 🛡️ 5. Software Engineer Intern
+- Git Safety audit & pengelolaan dokumentasi {clean_name}.
+"""
+            with open(sop_target, "w", encoding="utf-8") as f:
+                f.write(sop_content.strip() + "\n")
+
+        git_target = docs_dir / "Git-Intern-Safety-Procedure.md"
+        if not git_target.exists():
+            git_content = f"""---
+id: {clean_name.lower()}-git-safety
+title: SOP Git Safety ({clean_name})
+project: {clean_name}
+location: {clean_name}/docs/Git-Intern-Safety-Procedure.md
+date: {now_str}
+tags:
+  - antigravity
+  - {clean_name.lower()}
+  - git-safety
+---
+
+# 🛡️ SOP Git Safety untuk Role Intern - {clean_name}
+
+> **Folder Path**: `antigravity/{clean_name}/docs/`  
+> **Index Utama**: [[{clean_name}-Index]]  
+
+---
+
+## 🛑 Aturan Ketat Git Safety:
+1. PULL: Dilarang pull jika ada uncommitted changes di repo.
+2. PUSH: Pastikan hanya push branch kerja {clean_name} yang sudah terverifikasi.
+3. DOCS: Semua file baru disimpan di folder `plan/`, `conversation/`, atau `docs/` di dalam project {clean_name}.
+"""
+            with open(git_target, "w", encoding="utf-8") as f:
+                f.write(git_content.strip() + "\n")
+
+        return {
+            "project_name": clean_name,
+            "project_path": str(proj_dir),
+            "created_folders": ["plan", "conversation", "docs"],
+            "index_file": str(index_file),
+            "message": f"AI Intern berhasil membuat ruang kerja Obsidian untuk project '{clean_name}' (terisolasi mandiri)."
+        }
 
     def _sanitize_filename(self, title: str) -> str:
         """Membersihkan karakter ilegal untuk nama file Windows."""
@@ -69,15 +215,15 @@ date: {timestamp_str}
 project: {CURRENT_PROJECT_NAME}
 type: project-plan
 tags: {tag_str}
+location: {CURRENT_PROJECT_NAME}/plan/{file_name}
 ---
 
 # 🚀 Plan Misi: {goal}
 
-> **Project**: [[{CURRENT_PROJECT_NAME}-Index]]  
-> **Tanggal dibuat**: {timestamp_str}  
+> **Project Hub**: [[{CURRENT_PROJECT_NAME}-Index]]  
+> **Folder Path**: `antigravity/{CURRENT_PROJECT_NAME}/plan/`  
 > **Status**: In Progress  
 > **Tags**: {tag_str}  
-> **Master Roadmap**: [[13-IMPLEMENTATION-PLAN]]  
 
 ---
 
@@ -86,24 +232,16 @@ tags: {tag_str}
 
 ---
 
-## 🎯 Task Breakdown (Dikelola oleh Intern & Squad)
+## 🎯 Task Breakdown
 {tasks_md}
-
----
-
-## 🔗 Referensi & Hubungan Dokumen (Wikilinks)
-- Master Plan: [[13-IMPLEMENTATION-PLAN]]
-- Log Percakapan: [[20261011_Dokumentasi-Percakapan-Kibi-Orchestra]]
-- Prosedur Git Intern: [[Git-Intern-Safety-Procedure]]
 
 ---
 
 ## 📝 Catatan Tambahan (Manual / ChatGPT Browser)
 <!-- Tambahkan catatan atau hasil ekspor ChatGPT di sini -->
-
 """
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
+            f.write(content.strip() + "\n")
 
         return file_path
 
@@ -113,21 +251,23 @@ tags: {tag_str}
         content: str,
         tags: Optional[List[str]] = None
     ) -> Path:
-        """Menyimpan log percakapan / ekspor ChatGPT ke subfolder conversation/"""
+        """Menyimpan log percakapan / ekspor ChatGPT ke subfolder conversation/ tanpa link liar."""
         safe_title = self._sanitize_filename(title)
-        file_path = self.conversation_path / f"{safe_title}.md"
+        file_name = f"{safe_title}.md"
+        file_path = self.conversation_path / file_name
         
         header = f"""---
 project: {CURRENT_PROJECT_NAME}
 type: conversation-log
 date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 tags: {" ".join([f"#{t}" for t in (tags or ["antigravity", "conversation"])])}
+location: {CURRENT_PROJECT_NAME}/conversation/{file_name}
 ---
 
 # 💬 {title}
 
 > **Project Hub**: [[{CURRENT_PROJECT_NAME}-Index]]  
-> **Master Plan**: [[13-IMPLEMENTATION-PLAN]]  
+> **Folder Path**: `antigravity/{CURRENT_PROJECT_NAME}/conversation/`  
 
 ---
 

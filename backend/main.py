@@ -37,6 +37,10 @@ class SaveNoteRequest(BaseModel):
     filename: str
     content: str
 
+class CreateProjectRequest(BaseModel):
+    project_name: str
+    description: Optional[str] = ""
+
 # --- Endpoints ---
 @app.get("/api/health")
 def health_check():
@@ -46,6 +50,25 @@ def health_check():
         "obsidian_vault": str(OBSIDIAN_VAULT_PATH),
         "obsidian_exists": OBSIDIAN_VAULT_PATH.exists(),
         "ninerouter_url": NINEROUTER_URL
+    }
+
+@app.post("/api/projects/init")
+def init_project_api(req: CreateProjectRequest):
+    """
+    Tugas Otomatis AI Intern:
+    Membuat folder project baru di D:\Obsidian\Obsidian Memories\antigravity\<project_name>
+    lengkap dengan subfolder plan, conversation, docs, dan file Index Hub.
+    """
+    if not req.project_name.strip():
+        raise HTTPException(status_code=400, detail="Project name cannot be empty")
+    
+    res = obsidian_service.initialize_project(
+        project_name=req.project_name.strip(),
+        description=req.description or ""
+    )
+    return {
+        "success": True,
+        "data": res
     }
 
 @app.post("/api/missions/decompose")
@@ -76,6 +99,28 @@ def decompose_mission_api(req: DecomposeRequest):
         "plan": result.get("plan", ""),
         "tasks": result.get("tasks", []),
         "obsidian_file": saved_file
+    }
+
+class PMReviewRequest(BaseModel):
+    goal: str
+    plan_summary: str
+    completed_tasks: List[Dict[str, Any]]
+    model: Optional[str] = None
+
+@app.post("/api/missions/review")
+def review_mission_api(req: PMReviewRequest):
+    """
+    PM Quality Audit Gate: Menilai hasil kerja tim (Backend, Frontend, QA, Intern).
+    """
+    review_result = orchestrator.review_mission_by_pm(
+        mission_goal=req.goal,
+        plan_summary=req.plan_summary,
+        completed_tasks=req.completed_tasks,
+        model=req.model
+    )
+    return {
+        "success": True,
+        "review": review_result
     }
 
 @app.get("/api/obsidian/notes")

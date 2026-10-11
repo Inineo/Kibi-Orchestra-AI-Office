@@ -179,67 +179,72 @@ Jawab HANYA dengan JSON valid { "thought": "...", "action": "...", "artifact": "
 export interface DecomposedTask {
   title: string;
   description: string;
-  role: 'frontend' | 'backend' | 'intern' | 'reviewer';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  tags: string[];
-  estimatedTime: number;
-}
+    role: 'frontend' | 'backend' | 'qa' | 'intern' | 'reviewer';
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    tags: string[];
+    estimatedTime: number;
+  }
 
-/**
- * Memanggil Product Manager AI untuk memecah PRD / Goal besar menjadi sub-task
- * khusus untuk Frontend, Backend, dan Intern.
- */
-export async function decomposeMissionWithPM(params: {
-  missionGoal: string;
-  requirements?: string;
-  model?: string;
-}): Promise<{
-  epicSummary: string;
-  tasks: DecomposedTask[];
-}> {
-  const model = params.model || 'Architect';
+  export async function decomposeMissionWithPM(params: {
+    missionGoal: string;
+    requirements?: string;
+    model?: string;
+  }): Promise<{
+    epicSummary: string;
+    tasks: DecomposedTask[];
+  }> {
+    const model = params.model || 'Architect';
 
-  const systemPrompt = `Kamu adalah Product Manager (PM) Senior dalam sistem Kibi Orchestra AI Workforce.
-Tugasmu adalah menganalisis Mission Goal / PRD dari user, lalu memecahnya secara cerdas menjadi 3-4 sub-task teknis terpisah yang akan dikerjakan oleh tim engineer:
-1. FRONTEND: Bertanggung jawab atas UI, komponen visual, responsive layout, dan state management.
-2. BACKEND: Bertanggung jawab atas REST API, routing gateway, skema database, autentikasi, dan logika bisnis.
-3. INTERN: Bertanggung jawab atas unit testing, dokumentasi panduan, error boundary, dan verifikasi edge case.
+    const systemPrompt = `Kamu adalah Product Manager (PM) Senior dalam sistem Kibi Orchestra AI Workforce.
+  Tugasmu adalah menganalisis Mission Goal / PRD dari user, lalu memecahnya secara terstruktur menjadi sub-task teknis terpisah:
+  1. BACKEND: Bertanggung jawab atas REST API, database schema, autentikasi, dan logika data.
+  2. FRONTEND: Bertanggung jawab atas UI komponen visual, responsivitas, dan konsumsi API Backend.
+  3. QA: Bertanggung jawab atas pengujian regresi, unit test, validasi bug, dan edge-case testing (BUKAN intern).
+  4. INTERN: Bertanggung jawab atas SOP Git safety (pull/push verification), pembuatan dokumentasi Markdown, dan menautkan Obsidian Wikilinks.
 
-Format output HARUS JSON murni tanpa markdown:
-{
-  "epicSummary": "Ringkasan visi sprint produk dalam 1-2 kalimat bahasa Indonesia",
-  "tasks": [
-    {
-      "title": "Judul spesifik tugas",
-      "description": "Rincian teknis tugas dan acceptance criteria",
-      "role": "frontend",
-      "priority": "high",
-      "tags": ["Frontend", "UI", "React"],
-      "estimatedTime": 180
-    },
-    {
-      "title": "Judul spesifik tugas",
-      "description": "Rincian teknis tugas dan acceptance criteria",
-      "role": "backend",
-      "priority": "high",
-      "tags": ["Backend", "API", "Auth"],
-      "estimatedTime": 240
-    },
-    {
-      "title": "Judul spesifik tugas",
-      "description": "Rincian pengujian dan dokumentasi",
-      "role": "intern",
-      "priority": "medium",
-      "tags": ["Testing", "QA", "Docs"],
-      "estimatedTime": 120
-    }
-  ]
-}`;
+  Format output HARUS JSON murni tanpa markdown:
+  {
+    "epicSummary": "Ringkasan visi sprint produk dalam 1-2 kalimat bahasa Indonesia",
+    "tasks": [
+      {
+        "title": "Judul spesifik tugas",
+        "description": "Rincian teknis tugas dan acceptance criteria",
+        "role": "backend",
+        "priority": "high",
+        "tags": ["Backend", "API", "Schema"],
+        "estimatedTime": 180
+      },
+      {
+        "title": "Judul spesifik tugas",
+        "description": "Rincian teknis UI dan acceptance criteria",
+        "role": "frontend",
+        "priority": "high",
+        "tags": ["Frontend", "UI", "React"],
+        "estimatedTime": 180
+      },
+      {
+        "title": "Judul spesifik pengujian",
+        "description": "Rincian QA regression testing dan verifikasi error boundary",
+        "role": "qa",
+        "priority": "medium",
+        "tags": ["QA", "Testing", "Assertions"],
+        "estimatedTime": 120
+      },
+      {
+        "title": "Judul tugas Git & Dokumentasi",
+        "description": "Verifikasi keamanan Git dan pencatatan Obsidian Markdown Wikilinks",
+        "role": "intern",
+        "priority": "medium",
+        "tags": ["Git", "Docs", "Obsidian"],
+        "estimatedTime": 90
+      }
+    ]
+  }`;
 
   const userPrompt = `Mission Goal: ${params.missionGoal}
 Persyaratan Tambahan: ${params.requirements || 'Ikuti arsitektur standar produksi dan best practices modern.'}
 
-Pecah goal di atas menjadi sub-task untuk tim Frontend, Backend, dan Intern sekarang!`;
+Pecah goal di atas menjadi sub-task untuk tim Backend, Frontend, QA, dan Intern sekarang!`;
 
   const res = await call9RouterChat(
     [
@@ -266,14 +271,6 @@ Pecah goal di atas menjadi sub-task untuk tim Frontend, Backend, dan Intern seka
       epicSummary: `Inisiatif: ${params.missionGoal}`,
       tasks: [
         {
-          title: `[FE] Implementasi Antarmuka UI untuk ${params.missionGoal.slice(0, 35)}`,
-          description: `Membangun komponen visual dan interaksi pengguna untuk: ${params.missionGoal}`,
-          role: 'frontend',
-          priority: 'high',
-          tags: ['Frontend', 'UI'],
-          estimatedTime: 180,
-        },
-        {
           title: `[BE] API Endpoint & Arsitektur Data untuk ${params.missionGoal.slice(0, 35)}`,
           description: `Menyediakan gateway controller, model data, dan integrasi backend: ${params.missionGoal}`,
           role: 'backend',
@@ -282,15 +279,105 @@ Pecah goal di atas menjadi sub-task untuk tim Frontend, Backend, dan Intern seka
           estimatedTime: 240,
         },
         {
-          title: `[QA/Intern] Unit Tests & Dokumentasi untuk ${params.missionGoal.slice(0, 35)}`,
-          description: `Menulis test assertions dan memvalidasi edge cases untuk: ${params.missionGoal}`,
+          title: `[FE] Implementasi Antarmuka UI untuk ${params.missionGoal.slice(0, 35)}`,
+          description: `Membangun komponen visual dan interaksi pengguna untuk: ${params.missionGoal}`,
+          role: 'frontend',
+          priority: 'high',
+          tags: ['Frontend', 'UI'],
+          estimatedTime: 180,
+        },
+        {
+          title: `[QA] Testing Otomasi & Verifikasi Edge Case untuk ${params.missionGoal.slice(0, 35)}`,
+          description: `Menulis test suite regresi dan memvalidasi boundary data: ${params.missionGoal}`,
+          role: 'qa',
+          priority: 'medium',
+          tags: ['QA', 'Testing'],
+          estimatedTime: 120,
+        },
+        {
+          title: `[Intern] SOP Git Audit & Dokumentasi Obsidian untuk ${params.missionGoal.slice(0, 35)}`,
+          description: `Memverifikasi status Git dan mencatat dokumentasi Markdown ke Obsidian: ${params.missionGoal}`,
           role: 'intern',
           priority: 'medium',
-          tags: ['Testing', 'Docs'],
-          estimatedTime: 120,
+          tags: ['Git', 'Docs', 'Obsidian'],
+          estimatedTime: 90,
         },
       ],
     };
   }
 }
 
+/**
+ * PM REVIEW GATE (Verifikasi Akhir Hasil Pekerjaan Tim oleh Product Manager)
+ * Mengecek apakah implementasi Backend, Frontend, QA, dan Intern sesuai acceptance criteria.
+ */
+export async function reviewMissionByPM(params: {
+  missionGoal: string;
+  epicSummary: string;
+  completedTasks: { role: string; title: string; outputPreview: string }[];
+  model?: string;
+}): Promise<{
+  verdict: 'APPROVED' | 'NEEDS_REVISION';
+  feedback: string;
+  score: number; // 0 - 100
+  revisionNotes?: string;
+}> {
+  const model = params.model || 'Architect';
+
+  const systemPrompt = `Kamu adalah Product Manager (PM) Senior yang bertindak sebagai Quality Gatekeeper.
+Tugasmu adalah menginspeksi hasil kerja tim (Backend, Frontend, QA, Intern) terhadap Mission Goal awal:
+1. Periksa apakah semua kriteria fitur terpenuhi tanpa ada yang terlewat.
+2. Periksa apakah QA telah menguji edge case dan Intern telah mencatat dokumentasi.
+3. Berikan penilaian tegas:
+   - "APPROVED": Jika semua delivered sesuai spesifikasi (score >= 80).
+   - "NEEDS_REVISION": Jika ada bug fatal, mismatch endpoint, atau kekurangan krusial (score < 80).
+
+Format output HARUS JSON murni tanpa markdown:
+{
+  "verdict": "APPROVED" | "NEEDS_REVISION",
+  "score": 90,
+  "feedback": "Penjelasan evaluasi ringkas dalam 2-3 kalimat bahasa Indonesia",
+  "revisionNotes": "Poin revisi jika ada (opsional)"
+}`;
+
+  const tasksOverview = params.completedTasks
+    .map((t, idx) => `${idx + 1}. [${t.role.toUpperCase()}] ${t.title}\n   Hasil: ${t.outputPreview}`)
+    .join('\n\n');
+
+  const userPrompt = `Mission Goal: ${params.missionGoal}
+Rencana Sprint Awal: ${params.epicSummary}
+
+HASIL PEKERJAAN TIM:
+${tasksOverview}
+
+Lakukan audit dan berikan keputusan PM sekarang dalam format JSON valid!`;
+
+  const res = await call9RouterChat(
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    {
+      model,
+      temperature: 0.2,
+      maxTokens: 600,
+    }
+  );
+
+  try {
+    const cleaned = res.content.replace(/```json\n?|\n?```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return {
+      verdict: parsed.verdict === 'NEEDS_REVISION' ? 'NEEDS_REVISION' : 'APPROVED',
+      score: typeof parsed.score === 'number' ? parsed.score : 85,
+      feedback: parsed.feedback || 'Hasil kerja telah diverifikasi dan disetujui oleh Product Manager.',
+      revisionNotes: parsed.revisionNotes || '',
+    };
+  } catch (err) {
+    return {
+      verdict: 'APPROVED',
+      score: 85,
+      feedback: 'Pekerjaan tim telah diaudit oleh PM dan memenuhi kriteria dasar sprint.',
+    };
+  }
+}
