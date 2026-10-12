@@ -107,7 +107,7 @@ export class ThreeOfficeScene {
   // OPT-06: Polygon counts reduced on all geometries (still looks great at viewing distance).
   private sharedBotGeos = {
     head: new THREE.SphereGeometry(0.38, 16, 12),
-    visor: new THREE.SphereGeometry(0.385, 16, 10, -Math.PI / 2.3, Math.PI * 0.86, Math.PI / 4, Math.PI / 2),
+    visor: new THREE.SphereGeometry(0.4, 50, 10, Math.PI / 8, Math.PI * 0.75, Math.PI / 4, Math.PI / 2),
     eye: new THREE.CircleGeometry(0.065, 12, 0, Math.PI),
     blush: new THREE.CircleGeometry(0.042, 12),
     torso: new THREE.CylinderGeometry(0.20, 0.30, 0.44, 12),
@@ -1160,7 +1160,7 @@ export class ThreeOfficeScene {
   // ==========================================
   private createWorkstationAndWhiteChibiBot(agent: Agent): AnimatedCharacter {
     const isOrchestra = agent.department === 'orchestra';
-    const deskStageY = isOrchestra ? 0.22 : 0;
+    const deskStageY = isOrchestra ? 0.4 : 0;
 
     // 1. Workstation Desk
     const deskGroup = new THREE.Group();
@@ -1305,8 +1305,12 @@ export class ThreeOfficeScene {
     bot.position.copy(deskSeatedPos);
     bot.rotation.y = seatedRotY;
 
-    // OPT-05: Use shared material pools instead of creating per-agent
-    const botBodyMat = this.sharedBotMats.body;
+    // OPT-05: Use shared material pools for most parts, but create unique body color per agent
+    const botBodyMat = new THREE.MeshStandardMaterial({ 
+      color: new THREE.Color(agent.color), 
+      roughness: 0.18, 
+      metalness: 0.06 
+    });
     const visorMat = this.sharedBotMats.visor;
     const eyeMat = this.sharedBotMats.eye;
     const blushMat = this.sharedBotMats.blush;
@@ -1324,24 +1328,27 @@ export class ThreeOfficeScene {
 
     // Curved glossy black screen visor on front
     const visor = new THREE.Mesh(this.sharedBotGeos.visor, visorMat);
+    visor.position.set(0, 0, 0.003); // Lower position so it doesn't cover eyes, closer to head
     headGroup.add(visor);
 
     // OPT-05: Shared eye & blush geometry
     const leftEye = new THREE.Mesh(this.sharedBotGeos.eye, eyeMat);
-    leftEye.position.set(-0.16, 0.04, 0.36);
+    leftEye.position.set(-0.16, 0.04, 0.4);
     headGroup.add(leftEye);
 
     const rightEye = new THREE.Mesh(this.sharedBotGeos.eye, eyeMat);
-    rightEye.position.set(0.16, 0.04, 0.36);
+    rightEye.position.set(0.16, 0.04, 0.4);
     headGroup.add(rightEye);
 
     // KAWAII BLUSHING CHEEKS
     const blushLeft = new THREE.Mesh(this.sharedBotGeos.blush, blushMat);
-    blushLeft.position.set(-0.21, -0.05, 0.35);
+    blushLeft.position.set(-0.21, -0.05, 0.42);
+    blushLeft.renderOrder = 1; // Prevent Z-fighting with blushRight
     headGroup.add(blushLeft);
 
     const blushRight = new THREE.Mesh(this.sharedBotGeos.blush, blushMat);
-    blushRight.position.set(0.21, -0.05, 0.35);
+    blushRight.position.set(0.21, -0.05, 0.42);
+    blushRight.renderOrder = 1; // Prevent Z-fighting with blushLeft
     headGroup.add(blushRight);
 
     // ROUNDED WHITE HEADPHONES WITH SILVER METALLIC RIMS
