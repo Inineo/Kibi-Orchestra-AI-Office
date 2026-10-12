@@ -24,6 +24,36 @@ build/
 *.env.*
 !.env.example
 
+# API Keys & Secrets (JANGAN PERNAH COMMIT!)
+*apikey*
+*api-key*
+*api_key*
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+*secret*
+*token*
+*password*
+credentials.json
+service-account*.json
+firebase-adminsdk*.json
+
+# Session & Authentication Files
+session.json
+*.session
+auth.json
+.auth/
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
 # Editor & IDE Directories
 .vscode/*
 !.vscode/extensions.json
@@ -58,3 +88,47 @@ coverage/
 .stylelintcache
 *.tsbuildinfo
 .turbo/
+
+# Python Backend Cache & Compiled Files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist-python/
+build-python/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Virtual Environments (Python)
+venv/
+env/
+ENV/
+.venv/
+.virtualenv/
+pipenv/
+
+# Documentation & Internal Notes (User Request)
+ai-workforce-orchestra-docs/
+docs-internal/
+notes/
+TODO_*.md
+INTERNAL_*.md
+
+# Obsidian Vault Paths (Sensitive Personal Paths)
+**/Obsidian*/
+*.obsidian/
+
+# Backup & Archive Files
+*.backup
+*.bak
+*.old
+*.tmp
+*.swp
+*.swo
+*~
