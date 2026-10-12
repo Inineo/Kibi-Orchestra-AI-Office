@@ -12,7 +12,8 @@ import {
   Code2,
 } from 'lucide-react';
 
-export const OfficeCanvas: React.FC = () => {
+// OPT-02: Default export enables React.lazy() dynamic import for code-splitting
+const OfficeCanvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<ThreeOfficeScene | null>(null);
 
@@ -288,3 +289,5 @@ export const OfficeCanvas: React.FC = () => {
     </div>
   );
 };
+
+export default OfficeCanvas;

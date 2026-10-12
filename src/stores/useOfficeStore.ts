@@ -89,13 +89,18 @@ const getFormattedTime = (): string => {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
+// OPT-03: Singleton AudioContext — prevents memory leak from creating a new
+// AudioContext per playSound() call. Each leaked context = ~2-5 MB.
+let sharedAudioCtx: AudioContext | null = null;
+
 // Play brief web audio synthesized feedback
 export const playSound = (type: 'blip' | 'chime' | 'alert' | 'complete') => {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
+    if (!sharedAudioCtx) {
+      sharedAudioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
+    const ctx = sharedAudioCtx;
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);

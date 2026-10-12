@@ -101,6 +101,55 @@ export class ThreeOfficeScene {
     roughness: 0.7,
   });
 
+  // OPT-05: Shared geometry & material pools for chibi bot characters.
+  // Instead of creating ~105 geometries + ~56 materials (7 bots × 15 geos × 8 mats),
+  // we share pools → dramatically fewer GPU objects.
+  // OPT-06: Polygon counts reduced on all geometries (still looks great at viewing distance).
+  private sharedBotGeos = {
+    head: new THREE.SphereGeometry(0.38, 16, 12),
+    visor: new THREE.SphereGeometry(0.385, 16, 10, -Math.PI / 2.3, Math.PI * 0.86, Math.PI / 4, Math.PI / 2),
+    eye: new THREE.CircleGeometry(0.065, 12, 0, Math.PI),
+    blush: new THREE.CircleGeometry(0.042, 12),
+    torso: new THREE.CylinderGeometry(0.20, 0.30, 0.44, 12),
+    belly: new THREE.SphereGeometry(0.30, 12, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+    arm: new THREE.CylinderGeometry(0.055, 0.05, 0.28, 6),
+    hand: new THREE.SphereGeometry(0.065, 8, 8),
+    leg: new THREE.CylinderGeometry(0.06, 0.06, 0.20, 6),
+    foot: new THREE.SphereGeometry(0.085, 10, 8),
+    hitbox: new THREE.BoxGeometry(1.2, 1.8, 1.2),
+    badge: new THREE.BoxGeometry(0.14, 0.08, 0.02),
+    earCup: new THREE.CylinderGeometry(0.09, 0.09, 0.05, 8),
+    earRing: new THREE.TorusGeometry(0.088, 0.012, 6, 10),
+    earCap: new THREE.SphereGeometry(0.08, 8, 6),
+    antennaStalk: new THREE.CylinderGeometry(0.016, 0.016, 0.22, 6),
+    antennaOrb: new THREE.SphereGeometry(0.05, 8, 8),
+    thought: new THREE.SphereGeometry(0.14, 6, 6),
+    chatBubble: new THREE.BoxGeometry(0.42, 0.26, 0.04),
+    chatTail: new THREE.ConeGeometry(0.06, 0.12, 4),
+    alert: new THREE.OctahedronGeometry(0.2),
+    sleepZ1: new THREE.SphereGeometry(0.07, 6, 6),
+    sleepZ2: new THREE.SphereGeometry(0.1, 6, 6),
+    mugCup: new THREE.CylinderGeometry(0.07, 0.06, 0.14, 8),
+    mugSteam: new THREE.SphereGeometry(0.04, 6, 6),
+    phone: new THREE.BoxGeometry(0.08, 0.15, 0.02),
+    batonStick: new THREE.CylinderGeometry(0.012, 0.008, 0.42, 6),
+    batonStar: new THREE.OctahedronGeometry(0.045),
+  };
+
+  private sharedBotMats = {
+    body: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.18, metalness: 0.06 }),
+    visor: new THREE.MeshStandardMaterial({ color: 0x090a10, roughness: 0.08, metalness: 0.85 }),
+    eye: new THREE.MeshBasicMaterial({ color: 0xffffff }),
+    blush: new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.85 }),
+    silver: new THREE.MeshStandardMaterial({ color: 0xc4c7cf, metalness: 0.8, roughness: 0.2 }),
+    black: new THREE.MeshBasicMaterial({ color: 0x09090b }),
+    white: new THREE.MeshBasicMaterial({ color: 0xffffff }),
+    whiteMug: new THREE.MeshStandardMaterial({ color: 0xffffff }),
+    steamWhite: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }),
+    hitboxInvisible: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
+    grayZ: new THREE.MeshBasicMaterial({ color: 0xa1a1aa }),
+  };
+
   // Dynamic social chat slot counter
   private chattingSlotIndex = 0;
 
@@ -419,12 +468,16 @@ export class ThreeOfficeScene {
     bezel.position.set(0, 4.15, -13.60);
     wallGroup.add(bezel);
 
-    // High resolution canvas texture for live command center display
+    // OPT-04: Downscaled canvas texture (1024×320 vs 2048×640 = 75% less VRAM).
+    // Static content — no need for high resolution at normal viewing distance.
     const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 640;
+    const S = 0.5; // Scale factor (half resolution)
+    canvas.width = 1024;
+    canvas.height = 320;
     const ctx = canvas.getContext('2d');
     if (ctx) {
+      ctx.scale(S, S); // Scale context so all drawing code uses original coordinates
+
       // Background gradient
       const bgGrad = ctx.createLinearGradient(0, 0, 0, 640);
       bgGrad.addColorStop(0, '#0d111a');
@@ -532,6 +585,7 @@ export class ThreeOfficeScene {
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false; // Static content, no mipmaps needed
 
     const screenMat = new THREE.MeshBasicMaterial({ map: texture });
     const screenMesh = new THREE.Mesh(new THREE.BoxGeometry(14.0, 3.85, 0.02), screenMat);
@@ -554,14 +608,14 @@ export class ThreeOfficeScene {
 
     // Rim
     const rim = new THREE.Mesh(
-      new THREE.TorusGeometry(0.65, 0.05, 12, 24),
+      new THREE.TorusGeometry(0.65, 0.05, 8, 16), // OPT-06: reduced from 12×24
       new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.8 })
     );
     clockGroup.add(rim);
 
     // Face
     const face = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.65, 0.65, 0.04, 24),
+      new THREE.CylinderGeometry(0.65, 0.65, 0.04, 16), // OPT-06: reduced from 24
       new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
     );
     face.rotation.x = Math.PI / 2;
@@ -764,7 +818,7 @@ export class ThreeOfficeScene {
       beanbag.position.set(xOffset as number, 0, 0.3);
 
       const cushion = new THREE.Mesh(
-        new THREE.SphereGeometry(0.65, 16, 12),
+        new THREE.SphereGeometry(0.65, 10, 8), // OPT-06: reduced from 16×12
         mat as THREE.Material
       );
       cushion.scale.set(1.0, 0.6, 1.0);
@@ -853,14 +907,14 @@ export class ThreeOfficeScene {
 
     // Water Cooler with Translucent Aqua Jug and Animated Bubbles
     const waterBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.35, 0.35, 0.8, 16),
+      new THREE.CylinderGeometry(0.35, 0.35, 0.8, 10), // OPT-06: reduced from 16
       new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
     );
     waterBase.position.set(0.65, 1.6, 0);
     group.add(waterBase);
 
     const jug = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.3, 0.3, 0.7, 16),
+      new THREE.CylinderGeometry(0.3, 0.3, 0.7, 10), // OPT-06: reduced from 16
       new THREE.MeshStandardMaterial({
         color: 0x38bdf8,
         transparent: true,
@@ -895,7 +949,7 @@ export class ThreeOfficeScene {
 
     // High collaboration round table
     const tableTop = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.9, 0.9, 0.08, 20),
+      new THREE.CylinderGeometry(0.9, 0.9, 0.08, 12), // OPT-06: reduced from 20
       new THREE.MeshStandardMaterial({ color: 0x1e222b, roughness: 0.3, metalness: 0.2 })
     );
     tableTop.position.y = 1.1;
@@ -1251,106 +1305,71 @@ export class ThreeOfficeScene {
     bot.position.copy(deskSeatedPos);
     bot.rotation.y = seatedRotY;
 
-    // Body material: GLEAMING PURE WHITE CERAMIC (per user request!)
-    const botBodyMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.18,
-      metalness: 0.06,
-    });
-    // Deep obsidian glossy black visor screen for striking contrast
-    const visorMat = new THREE.MeshStandardMaterial({
-      color: 0x090a10,
-      roughness: 0.08,
-      metalness: 0.85,
-    });
-    // Iconic glowing white expressive eyes
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    // Soft kawaii pink blush cheeks
-    const blushMat = new THREE.MeshBasicMaterial({
-      color: 0xf43f5e,
-      transparent: true,
-      opacity: 0.85,
-    });
-    // Silver metallic accent trim
-    const silverTrimMat = new THREE.MeshStandardMaterial({
-      color: 0xc4c7cf,
-      metalness: 0.8,
-      roughness: 0.2,
-    });
+    // OPT-05: Use shared material pools instead of creating per-agent
+    const botBodyMat = this.sharedBotMats.body;
+    const visorMat = this.sharedBotMats.visor;
+    const eyeMat = this.sharedBotMats.eye;
+    const blushMat = this.sharedBotMats.blush;
+    const silverTrimMat = this.sharedBotMats.silver;
 
     // A. KAWAII ROUNDED WHITE HEAD
     const headGroup = new THREE.Group();
     headGroup.position.y = 0.72;
 
-    // Smooth rounded dome head (pure white)
-    const helmetGeo = new THREE.SphereGeometry(0.38, 24, 20);
-    helmetGeo.scale(1.08, 0.98, 0.94);
-    const helmet = new THREE.Mesh(helmetGeo, botBodyMat);
+    // OPT-05/06: Use shared geometry pools (reduced poly from 24×20 → 16×12)
+    const helmet = new THREE.Mesh(this.sharedBotGeos.head, botBodyMat);
+    helmet.scale.set(1.08, 0.98, 0.94);
     helmet.castShadow = true;
     headGroup.add(helmet);
 
     // Curved glossy black screen visor on front
-    const visorGeo = new THREE.SphereGeometry(0.385, 24, 16, -Math.PI / 2.3, Math.PI * 0.86, Math.PI / 4, Math.PI / 2);
-    const visor = new THREE.Mesh(visorGeo, visorMat);
+    const visor = new THREE.Mesh(this.sharedBotGeos.visor, visorMat);
     headGroup.add(visor);
 
-    // EXPRESSIVE GLOWING EYES (Smiling happy arch eyes ^_^)
-    const eyeGeo = new THREE.CircleGeometry(0.065, 16, 0, Math.PI);
-    const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+    // OPT-05: Shared eye & blush geometry
+    const leftEye = new THREE.Mesh(this.sharedBotGeos.eye, eyeMat);
     leftEye.position.set(-0.16, 0.04, 0.36);
     headGroup.add(leftEye);
 
-    const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+    const rightEye = new THREE.Mesh(this.sharedBotGeos.eye, eyeMat);
     rightEye.position.set(0.16, 0.04, 0.36);
     headGroup.add(rightEye);
 
-    // KAWAII BLUSHING CHEEKS (Soft rosy dots)
-    const blushGeo = new THREE.CircleGeometry(0.042, 16);
-    const blushLeft = new THREE.Mesh(blushGeo, blushMat);
+    // KAWAII BLUSHING CHEEKS
+    const blushLeft = new THREE.Mesh(this.sharedBotGeos.blush, blushMat);
     blushLeft.position.set(-0.21, -0.05, 0.35);
     headGroup.add(blushLeft);
 
-    const blushRight = new THREE.Mesh(blushGeo, blushMat);
+    const blushRight = new THREE.Mesh(this.sharedBotGeos.blush, blushMat);
     blushRight.position.set(0.21, -0.05, 0.35);
     headGroup.add(blushRight);
 
     // ROUNDED WHITE HEADPHONES WITH SILVER METALLIC RIMS
+    // OPT-05/06: Shared headphone geometry
     [-0.42, 0.42].forEach((xOffset) => {
-      const earCup = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.09, 0.09, 0.05, 16),
-        botBodyMat
-      );
+      const earCup = new THREE.Mesh(this.sharedBotGeos.earCup, botBodyMat);
       earCup.rotation.z = Math.PI / 2;
       earCup.position.set(xOffset, 0.02, 0);
       headGroup.add(earCup);
 
-      // Silver ring
-      const earRing = new THREE.Mesh(
-        new THREE.TorusGeometry(0.088, 0.012, 8, 16),
-        silverTrimMat
-      );
+      const earRing = new THREE.Mesh(this.sharedBotGeos.earRing, silverTrimMat);
       earRing.rotation.y = Math.PI / 2;
       earRing.position.set(xOffset > 0 ? xOffset + 0.025 : xOffset - 0.025, 0.02, 0);
       headGroup.add(earRing);
 
-      const earCap = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08, 12, 10),
-        silverTrimMat
-      );
+      const earCap = new THREE.Mesh(this.sharedBotGeos.earCap, silverTrimMat);
       earCap.position.set(xOffset > 0 ? xOffset + 0.03 : xOffset - 0.03, 0.02, 0);
       headGroup.add(earCap);
     });
 
     // CUTE TOP ANTENNA WITH GLOWING WHITE ORB
-    const antennaStalk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.016, 0.016, 0.22, 8),
-      botBodyMat
-    );
+    // OPT-05: Shared antenna geometry
+    const antennaStalk = new THREE.Mesh(this.sharedBotGeos.antennaStalk, botBodyMat);
     antennaStalk.position.set(0, 0.46, 0);
     headGroup.add(antennaStalk);
 
     const antennaOrb = new THREE.Mesh(
-      new THREE.SphereGeometry(0.05, 12, 12),
+      this.sharedBotGeos.antennaOrb,
       new THREE.MeshBasicMaterial({ color: isOrchestra ? 0xffffff : 0x38bdf8 })
     );
     antennaOrb.position.set(0, 0.58, 0);
@@ -1359,89 +1378,72 @@ export class ThreeOfficeScene {
     bot.add(headGroup);
 
     // B. CHUBBY PEAR-SHAPED PURE WHITE TORSO
-    const torsoGeo = new THREE.CylinderGeometry(0.20, 0.30, 0.44, 20);
-    const torso = new THREE.Mesh(torsoGeo, botBodyMat);
+    // OPT-05: Shared torso geometry
+    const torso = new THREE.Mesh(this.sharedBotGeos.torso, botBodyMat);
     torso.position.y = 0.26;
     torso.castShadow = true;
     bot.add(torso);
 
-    const belly = new THREE.Mesh(
-      new THREE.SphereGeometry(0.30, 20, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
-      botBodyMat
-    );
+    const belly = new THREE.Mesh(this.sharedBotGeos.belly, botBodyMat);
     belly.position.y = 0.04;
     bot.add(belly);
 
     // Chest Metallic Badge with role color
     const badgeColor = isOrchestra ? 0xffffff : agent.department === 'developer' ? 0x10b981 : 0xf97316;
     const badgeMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.14, 0.08, 0.02),
+      this.sharedBotGeos.badge,
       new THREE.MeshBasicMaterial({ color: badgeColor })
     );
     badgeMesh.position.set(0, 0.32, 0.26);
     bot.add(badgeMesh);
 
     // C. PURE WHITE ARMS & HANDS
+    // OPT-05: Shared arm & hand geometry
     const leftArm = new THREE.Group();
     leftArm.position.set(-0.34, 0.38, 0);
-    const lArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.28, 8), botBodyMat);
+    const lArmMesh = new THREE.Mesh(this.sharedBotGeos.arm, botBodyMat);
     lArmMesh.position.set(0, -0.14, 0);
     leftArm.add(lArmMesh);
-    const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), botBodyMat);
+    const lHand = new THREE.Mesh(this.sharedBotGeos.hand, botBodyMat);
     lHand.position.set(0, -0.28, 0);
     leftArm.add(lHand);
     bot.add(leftArm);
 
     const rightArm = new THREE.Group();
     rightArm.position.set(0.34, 0.38, 0);
-    const rArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.28, 8), botBodyMat);
+    const rArmMesh = new THREE.Mesh(this.sharedBotGeos.arm, botBodyMat);
     rArmMesh.position.set(0, -0.14, 0);
     rightArm.add(rArmMesh);
-    const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), botBodyMat);
+    const rHand = new THREE.Mesh(this.sharedBotGeos.hand, botBodyMat);
     rHand.position.set(0, -0.28, 0);
     rightArm.add(rHand);
 
-    // Props: Steaming Coffee Mug
+    // OPT-05: Shared prop geometry
     const handMug = new THREE.Group();
     handMug.position.set(0, -0.32, -0.12);
-    const mugCup = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.07, 0.06, 0.14, 12),
-      new THREE.MeshStandardMaterial({ color: 0xffffff })
-    );
+    const mugCup = new THREE.Mesh(this.sharedBotGeos.mugCup, this.sharedBotMats.whiteMug);
     handMug.add(mugCup);
-    const mugSteam = new THREE.Mesh(
-      new THREE.SphereGeometry(0.04, 6, 6),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 })
-    );
+    const mugSteam = new THREE.Mesh(this.sharedBotGeos.mugSteam, this.sharedBotMats.steamWhite);
     mugSteam.position.y = 0.12;
     handMug.add(mugSteam);
     handMug.visible = false;
     rightArm.add(handMug);
 
     // Prop: Smartphone
-    const handPhone = new THREE.Mesh(
-      new THREE.BoxGeometry(0.08, 0.15, 0.02),
-      new THREE.MeshBasicMaterial({ color: 0x09090b })
-    );
+    const handPhone = new THREE.Mesh(this.sharedBotGeos.phone, this.sharedBotMats.black);
     handPhone.position.set(0, -0.28, -0.12);
     handPhone.rotation.x = 0.6;
     handPhone.visible = false;
     rightArm.add(handPhone);
 
-    // Prop: Sophia Vance Conductor Baton (Orchestra Maestro)
+    // Prop: Conductor Baton (Orchestra Maestro)
     const conductorBaton = new THREE.Group();
     conductorBaton.position.set(0, -0.28, -0.1);
     conductorBaton.rotation.x = -1.2;
-    const batonStick = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.012, 0.008, 0.42, 8),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
+    const batonStick = new THREE.Mesh(this.sharedBotGeos.batonStick, this.sharedBotMats.white);
     batonStick.position.y = 0.2;
     conductorBaton.add(batonStick);
-    const batonStar = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.045),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
+    const batonStar = new THREE.Mesh(this.sharedBotGeos.batonStar, this.sharedBotMats.white);
     batonStar.position.y = 0.42;
     conductorBaton.add(batonStar);
     conductorBaton.visible = isOrchestra;
@@ -1450,12 +1452,13 @@ export class ThreeOfficeScene {
     bot.add(rightArm);
 
     // D. PURE WHITE LEGS & LITTLE BOOTS
+    // OPT-05: Shared leg & foot geometry
     const leftLeg = new THREE.Group();
     leftLeg.position.set(-0.14, 0.06, 0);
-    const lLegMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.20, 8), botBodyMat);
+    const lLegMesh = new THREE.Mesh(this.sharedBotGeos.leg, botBodyMat);
     lLegMesh.position.y = -0.1;
     leftLeg.add(lLegMesh);
-    const lFoot = new THREE.Mesh(new THREE.SphereGeometry(0.085, 14, 10), botBodyMat);
+    const lFoot = new THREE.Mesh(this.sharedBotGeos.foot, botBodyMat);
     lFoot.scale.set(0.9, 0.65, 1.4);
     lFoot.position.set(0, -0.19, 0.04);
     leftLeg.add(lFoot);
@@ -1463,50 +1466,51 @@ export class ThreeOfficeScene {
 
     const rightLeg = new THREE.Group();
     rightLeg.position.set(0.14, 0.06, 0);
-    const rLegMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.20, 8), botBodyMat);
+    const rLegMesh = new THREE.Mesh(this.sharedBotGeos.leg, botBodyMat);
     rLegMesh.position.y = -0.1;
     rightLeg.add(rLegMesh);
-    const rFoot = new THREE.Mesh(new THREE.SphereGeometry(0.085, 14, 10), botBodyMat);
+    const rFoot = new THREE.Mesh(this.sharedBotGeos.foot, botBodyMat);
     rFoot.scale.set(0.9, 0.65, 1.4);
     rFoot.position.set(0, -0.19, 0.04);
     rightLeg.add(rFoot);
     bot.add(rightLeg);
 
     // E. EMOTION & INTERACTION BUBBLES
+    // OPT-05: Shared bubble, alert, sleep, and hitbox geometry
     const thoughtGroup = new THREE.Group();
     thoughtGroup.position.set(0.35, 1.35, 0);
-    const thoughtBubble = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const thoughtBubble = new THREE.Mesh(this.sharedBotGeos.thought, this.sharedBotMats.white);
     thoughtGroup.add(thoughtBubble);
     thoughtGroup.visible = false;
     bot.add(thoughtGroup);
 
     const chatGroup = new THREE.Group();
     chatGroup.position.set(0, 1.45, 0);
-    const chatBubble = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.26, 0.04), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const chatBubble = new THREE.Mesh(this.sharedBotGeos.chatBubble, this.sharedBotMats.white);
     chatGroup.add(chatBubble);
-    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.12, 4), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const tail = new THREE.Mesh(this.sharedBotGeos.chatTail, this.sharedBotMats.white);
     tail.rotation.z = Math.PI;
     tail.position.set(0, -0.18, 0);
     chatGroup.add(tail);
     chatGroup.visible = false;
     bot.add(chatGroup);
 
-    const alertMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.2), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const alertMesh = new THREE.Mesh(this.sharedBotGeos.alert, this.sharedBotMats.white);
     alertMesh.position.set(0, 1.4, 0);
     alertMesh.visible = false;
     bot.add(alertMesh);
 
     const sleepGroup = new THREE.Group();
     sleepGroup.position.set(0.2, 1.3, 0);
-    const z1 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), new THREE.MeshBasicMaterial({ color: 0xa1a1aa }));
-    const z2 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const z1 = new THREE.Mesh(this.sharedBotGeos.sleepZ1, this.sharedBotMats.grayZ);
+    const z2 = new THREE.Mesh(this.sharedBotGeos.sleepZ2, this.sharedBotMats.white);
     z2.position.set(0.16, 0.16, 0);
     sleepGroup.add(z1, z2);
     sleepGroup.visible = false;
     bot.add(sleepGroup);
 
     // Hitbox for clicking
-    const hitBox = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 1.2), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }));
+    const hitBox = new THREE.Mesh(this.sharedBotGeos.hitbox, this.sharedBotMats.hitboxInvisible);
     hitBox.position.y = 0.6;
     bot.add(hitBox);
     this.interactiveMeshes.push(hitBox);
