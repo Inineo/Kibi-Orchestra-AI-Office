@@ -1306,10 +1306,10 @@ export class ThreeOfficeScene {
     bot.rotation.y = seatedRotY;
 
     // OPT-05: Use shared material pools for most parts, but create unique body color per agent
-    const botBodyMat = new THREE.MeshStandardMaterial({ 
-      color: new THREE.Color(agent.color), 
-      roughness: 0.18, 
-      metalness: 0.06 
+    const botBodyMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(agent.color),
+      roughness: 0.18,
+      metalness: 0.06
     });
     const visorMat = this.sharedBotMats.visor;
     const eyeMat = this.sharedBotMats.eye;

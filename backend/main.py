@@ -82,10 +82,31 @@ def decompose_mission_api(req: DecomposeRequest):
 
     result = orchestrator.decompose_mission(req.goal, model=req.model)
 
+    import uuid
+    mission_id = str(uuid.uuid4())[:8]
+
+    # 1. Simpan ke SQLite Database
+    from services.database import Database
+    Database.create_mission(
+        mission_id=mission_id,
+        title=f"Mission: {req.goal[:40]}...",
+        goal=req.goal,
+        requirements=[]
+    )
+    for idx, t in enumerate(result.get("tasks", [])):
+        task_id = f"t-{mission_id}-{idx+1}"
+        Database.create_task(
+            task_id=task_id,
+            mission_id=mission_id,
+            title=t.get("title", ""),
+            description=f"Estimated: {t.get('estimatedMinutes', 20)}m",
+            assigned_to=f"agent-{t.get('assignedRole', 'backend')}",
+            criteria=t.get("acceptanceCriteria", "")
+        )
+
+    # 2. Simpan ke Obsidian Vault
     saved_file = None
     if req.save_to_obsidian:
-        import uuid
-        mission_id = str(uuid.uuid4())[:8]
         saved_path = obsidian_service.save_mission_plan(
             mission_id=mission_id,
             goal=req.goal,
@@ -96,6 +117,7 @@ def decompose_mission_api(req: DecomposeRequest):
 
     return {
         "success": True,
+        "mission_id": mission_id,
         "plan": result.get("plan", ""),
         "tasks": result.get("tasks", []),
         "obsidian_file": saved_file
@@ -105,6 +127,7 @@ class PMReviewRequest(BaseModel):
     goal: str
     plan_summary: str
     completed_tasks: List[Dict[str, Any]]
+    mission_id: Optional[str] = None
     model: Optional[str] = None
 
 @app.post("/api/missions/review")
@@ -118,6 +141,22 @@ def review_mission_api(req: PMReviewRequest):
         completed_tasks=req.completed_tasks,
         model=req.model
     )
+    
+    # Simpan review ke SQLite
+    if req.mission_id:
+        import uuid
+        from services.database import Database
+        Database.save_review(
+            review_id=str(uuid.uuid4())[:8],
+            mission_id=req.mission_id,
+            reviewer_id="agent-pm",
+            verdict=review_result.get("verdict", "APPROVED"),
+            feedback=review_result.get("feedback", "")
+        )
+        # Update status mission jika lolos audit
+        new_status = "completed" if review_result.get("verdict") == "APPROVED" else "needs_revision"
+        Database.update_mission_status(req.mission_id, new_status)
+
     return {
         "success": True,
         "review": review_result

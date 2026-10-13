@@ -1,0 +1,89 @@
+// Prisma Schema for Kibi Orchestra SQLite Database
+// File: backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../orchestrator.db"
+}
+
+model Mission {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("planning") // planning, in_progress, completed, rejected
+  priority    String    @default("medium")   // low, medium, high, critical
+  goal        String
+  requirements String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  subtasks    Task[]
+  agentId     String?
+  agent       Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  
+  reviews     MissionReview[]
+}
+
+model Task {
+  id            String    @id @default(cuid())
+  missionId     String
+  mission       Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  
+  title         String
+  description   String?
+  status        String    @default("pending") // pending, assigned, in_progress, completed, blocked
+  priority      String    @default("medium")  // low, medium, high
+  assignedTo    String?   // agent ID
+  agent         Agent?    @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+  
+  acceptanceCriteria String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  artifacts     TaskArtifact[]
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  name         String
+  role         String   // product_manager, frontend, backend, qa, intern, devops, reviewer, planner, security
+  title        String?
+  status       String   @default("idle") // idle, working, planning, coding, testing, reviewing, blocked
+  department   String   // orchestra, developer, writer
+  
+  currentTask  String?  // task ID
+  task         Task?    @relation(fields: [currentTask], references: [id], onDelete: SetNull)
+  
+  missions     Mission[]
+  tasks        Task[]
+}
+
+model MissionReview {
+  id          String    @id @default(cuid())
+  missionId   String
+  mission     Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  
+  reviewerId  String
+  reviewer    Agent     @relation(fields: [reviewerId], references: [id])
+  
+  verdict     String    // APPROVED, NEEDS_REVISION
+  feedback    String?
+  createdAt   DateTime  @default(now())
+}
+
+model TaskArtifact {
+  id          String    @id @default(cuid())
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  type        String    // markdown, screenshot, video, log
+  url         String    // file path or URL
+  description String?
+  createdAt   DateTime  @default(now())
+}

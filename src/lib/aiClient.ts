@@ -246,25 +246,58 @@ Persyaratan Tambahan: ${params.requirements || 'Ikuti arsitektur standar produks
 
 Pecah goal di atas menjadi sub-task untuk tim Backend, Frontend, QA, dan Intern sekarang!`;
 
-  const res = await call9RouterChat(
-    [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    {
-      model,
-      temperature: 0.3,
-      maxTokens: 1200,
-    }
-  );
+    // 1. Coba panggil Python Backend terlebih dahulu (otomatis simpan ke SQLite & Obsidian Vault)
+    try {
+      const backendRes = await fetch('/api/backend/missions/decompose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal: params.missionGoal,
+          model,
+          save_to_obsidian: true,
+        }),
+      });
 
-  try {
-    const cleaned = res.content.replace(/```json\n?|\n?```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return {
-      epicSummary: parsed.epicSummary || 'Sprint tugas berhasil dipecah oleh Product Manager AI.',
-      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-    };
+      if (backendRes.ok) {
+        const json = await backendRes.json();
+        if (json.success && Array.isArray(json.tasks) && json.tasks.length > 0) {
+          return {
+            epicSummary: json.plan || 'Misi berhasil diurai oleh PM dan tersimpan di database SQLite & Obsidian.',
+            tasks: json.tasks.map((t: any) => ({
+              title: t.title || 'Untitled Subtask',
+              description: t.description || `Subtask untuk ${t.assignedRole || 'engineer'}`,
+              role: t.assignedRole || 'backend',
+              priority: 'high',
+              tags: [t.assignedRole?.toUpperCase() || 'TASK'],
+              estimatedTime: t.estimatedMinutes || 180,
+            })),
+          };
+        }
+      }
+    } catch (backendErr) {
+      console.warn('Backend Python offline atau tidak merespons, fallbacking ke direct 9Router:', backendErr);
+    }
+
+    // 2. Fallback: Langsung panggil 9Router jika Backend Python belum aktif
+    const res = await call9RouterChat(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
+        model,
+        temperature: 0.3,
+        maxTokens: 1200,
+      }
+    );
+
+    try {
+      const cleaned = res.content.replace(/```json\n?|\n?```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      return {
+        epicSummary: parsed.epicSummary || 'Sprint tugas berhasil dipecah oleh Product Manager AI.',
+        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+      };
   } catch (err) {
     console.warn('Gagal parse JSON dari PM decomposition, fallbacking to template:', err);
     return {
