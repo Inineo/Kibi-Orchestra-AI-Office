@@ -246,6 +246,23 @@ location: {self.project_name}/plan/{file_name}
 
         return file_path
 
+    def delete_mission_plan(self, mission_id: str) -> bool:
+        """
+        Menghapus file plan dari folder 'plan/' saat misi/task selesai
+        agar file markdown tidak menumpuk di Obsidian.
+        """
+        deleted = False
+        for file in self.plan_path.glob("*.md"):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    first_chars = f.read(500)
+                    if f"id: {mission_id}" in first_chars:
+                        file.unlink()
+                        deleted = True
+            except Exception:
+                continue
+        return deleted
+
     def save_conversation_note(
         self,
         title: str,

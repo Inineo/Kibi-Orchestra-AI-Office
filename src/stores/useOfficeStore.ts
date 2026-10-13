@@ -413,6 +413,28 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
             { id: `st-${idx}-3`, text: 'Validasi testing & code review', completed: false },
           ],
         });
+
+        // 3B. Tugas AI Intern: Otomatis daftarkan task ke GitHub Issues
+        fetch('/api/backend/intern/github-issue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: t.title,
+            body: `### Deskripsi Tugas\n${t.description}\n\n- **Role Assigned**: \`${t.role}\`\n- **Priority**: \`${t.priority}\`\n- **Dibuat oleh**: AI Intern (Alex Novak)\n- **Status**: Pending Execution`,
+            role: t.role,
+          }),
+        })
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.issue_url) {
+              addEvent({
+                type: 'info',
+                message: `🐙 [INTERN] Alex Novak mendaftarkan issue GitHub: "${t.title}"`,
+                details: res.issue_url,
+              });
+            }
+          })
+          .catch(() => {});
       });
 
       // 4. Update PM kembali ke idle / monitoring

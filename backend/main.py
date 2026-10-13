@@ -157,10 +157,38 @@ def review_mission_api(req: PMReviewRequest):
         new_status = "completed" if review_result.get("verdict") == "APPROVED" else "needs_revision"
         Database.update_mission_status(req.mission_id, new_status)
 
+        # 🧹 Hapus file plan markdown jika misi SUDAH APPROVED agar file tidak menumpuk di Obsidian
+        if review_result.get("verdict") == "APPROVED":
+            obsidian_service.delete_mission_plan(req.mission_id)
+
     return {
         "success": True,
         "review": review_result
     }
+
+class CreateIssueRequest(BaseModel):
+    title: str
+    body: str
+    role: Optional[str] = "task"
+    task_id: Optional[str] = None
+
+@app.post("/api/intern/github-issue")
+def create_github_issue_api(req: CreateIssueRequest):
+    """
+    Tugas AI Intern: Membuat issue di GitHub saat ada task baru agar terlacak di repositori.
+    """
+    from services.intern_safety import InternGitSafetyService
+    from pathlib import Path
+    
+    repo_root = Path(__file__).resolve().parent.parent
+    intern_service = InternGitSafetyService(repo_root)
+    
+    res = intern_service.create_github_issue(
+        title=req.title,
+        body=req.body,
+        labels=[req.role or "task", "ai-orchestra"]
+    )
+    return res
 
 @app.get("/api/obsidian/notes")
 def list_obsidian_notes():

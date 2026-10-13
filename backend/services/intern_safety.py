@@ -91,3 +91,64 @@ class InternGitSafetyService:
             "message": f"Ditemukan {len(unpushed_commits)} commit yang siap di-push.",
             "uncommitted_changes_count": len(uncommitted)
         }
+
+    def create_github_issue(
+        self,
+        title: str,
+        body: str,
+        labels: Optional[List[str]] = None,
+        github_token: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        AI Intern: Membuat Issue di GitHub untuk melacak task yang masuk.
+        Jika token GITHUB_TOKEN tersedia di env, langsung buat via GitHub REST API.
+        Jika belum ada token, siapkan URL issue template siap pakai.
+        """
+        import os
+        import requests
+
+        token = github_token or os.environ.get("GITHUB_TOKEN")
+        repo = "Inineo/Kibi-Orchestra-AI-Office"
+
+        if token:
+            url = f"https://api.github.com/repos/{repo}/issues"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+            payload = {
+                "title": f"[{labels[0].upper() if labels else 'TASK'}] {title}",
+                "body": body,
+                "labels": labels or ["task", "ai-orchestra"]
+            }
+            try:
+                res = requests.post(url, json=payload, headers=headers, timeout=15)
+                if res.status_code in [200, 201]:
+                    issue_data = res.json()
+                    return {
+                        "success": True,
+                        "issue_url": issue_data.get("html_url"),
+                        "issue_number": issue_data.get("number"),
+                        "message": f"GitHub Issue #{issue_data.get('number')} berhasil dibuat oleh AI Intern."
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "status_code": res.status_code,
+                        "message": f"GitHub API menolak request: {res.text}"
+                    }
+            except Exception as e:
+                return {"success": False, "message": str(e)}
+
+        # Fallback jika GITHUB_TOKEN belum diatur
+        import urllib.parse
+        encoded_title = urllib.parse.quote(title)
+        encoded_body = urllib.parse.quote(body)
+        quick_link = f"https://github.com/{repo}/issues/new?title={encoded_title}&body={encoded_body}"
+        return {
+            "success": True,
+            "is_link_only": True,
+            "issue_url": quick_link,
+            "message": "AI Intern telah menyiapkan tautan pembuatan issue GitHub (atur GITHUB_TOKEN di .env untuk otomatisasi penuh tanpa klik)."
+        }
