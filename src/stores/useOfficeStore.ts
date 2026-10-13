@@ -428,7 +428,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
           .then((res) => {
             if (res.issue_url) {
               addEvent({
-                type: 'info',
+                type: 'artifact',
                 message: `🐙 [INTERN] Alex Novak mendaftarkan issue GitHub: "${t.title}"`,
                 details: res.issue_url,
               });
