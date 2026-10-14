@@ -54,7 +54,7 @@ def health_check():
 
 @app.post("/api/projects/init")
 def init_project_api(req: CreateProjectRequest):
-    """
+    r"""
     Tugas Otomatis AI Intern:
     Membuat folder project baru di D:\Obsidian\Obsidian Memories\antigravity\<project_name>
     lengkap dengan subfolder plan, conversation, docs, dan file Index Hub.
