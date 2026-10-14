@@ -38,6 +38,7 @@ const PRESET_MODELS = [
 
 export const ROLE_OPTIONS: { id: AgentRole; label: string; department: AgentDepartment }[] = [
   { id: 'product_manager', label: 'Product Manager (PM)', department: 'orchestra' },
+  { id: 'researcher', label: 'Research Specialist & Knowledge', department: 'orchestra' },
   { id: 'frontend', label: 'Front End Engineer', department: 'developer' },
   { id: 'backend', label: 'Back End Engineer', department: 'developer' },
   { id: 'qa', label: 'QA Automation Engineer', department: 'developer' },

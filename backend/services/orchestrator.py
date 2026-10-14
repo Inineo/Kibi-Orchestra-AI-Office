@@ -47,11 +47,12 @@ class WorkflowOrchestrator:
         system_prompt = (
             "You are a Lead Product Manager in an AI software agency. "
             "Decompose the user's mission into clear, actionable subtasks for roles: "
-            "'backend', 'frontend', 'qa', 'intern'. "
+            "'researcher', 'backend', 'frontend', 'qa', 'intern'. "
+            "Researcher is strictly for web research, technical documentation lookup, and retrieving knowledge from Obsidian Vault to brief the team without wasting PM tokens. "
             "QA is strictly for automated unit/integration testing and edge-case validation. "
             "Intern is strictly for Git safety checks and Obsidian Markdown documentation linking. "
             "Respond ONLY with a JSON object containing: "
-            "{\"plan\": \"brief strategy\", \"tasks\": [{\"title\": \"...\", \"assignedRole\": \"backend|frontend|qa|intern\", \"estimatedMinutes\": 20}]}"
+            "{\"plan\": \"brief strategy\", \"tasks\": [{\"title\": \"...\", \"assignedRole\": \"researcher|backend|frontend|qa|intern\", \"estimatedMinutes\": 20}]}"
         )
 
         user_content = f"Mission: {mission_goal}"

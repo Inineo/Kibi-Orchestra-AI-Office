@@ -197,15 +197,24 @@ export interface DecomposedTask {
 
     const systemPrompt = `Kamu adalah Product Manager (PM) Senior dalam sistem Kibi Orchestra AI Workforce.
   Tugasmu adalah menganalisis Mission Goal / PRD dari user, lalu memecahnya secara terstruktur menjadi sub-task teknis terpisah:
-  1. BACKEND: Bertanggung jawab atas REST API, database schema, autentikasi, dan logika data.
-  2. FRONTEND: Bertanggung jawab atas UI komponen visual, responsivitas, dan konsumsi API Backend.
-  3. QA: Bertanggung jawab atas pengujian regresi, unit test, validasi bug, dan edge-case testing (BUKAN intern).
-  4. INTERN: Bertanggung jawab atas SOP Git safety (pull/push verification), pembuatan dokumentasi Markdown, dan menautkan Obsidian Wikilinks.
+  1. RESEARCHER: Bertanggung jawab mencari informasi, referensi teknis online, dan menggali knowledge dari file Obsidian Vault agar tim/PM memiliki konteks akurat tanpa boros token.
+  2. BACKEND: Bertanggung jawab atas REST API, database schema, autentikasi, dan logika data.
+  3. FRONTEND: Bertanggung jawab atas UI komponen visual, responsivitas, dan konsumsi API Backend.
+  4. QA: Bertanggung jawab atas pengujian regresi, unit test, validasi bug, dan edge-case testing (BUKAN intern).
+  5. INTERN: Bertanggung jawab atas SOP Git safety (pull/push verification), pembuatan dokumentasi Markdown, dan menautkan Obsidian Wikilinks.
 
   Format output HARUS JSON murni tanpa markdown:
   {
     "epicSummary": "Ringkasan visi sprint produk dalam 1-2 kalimat bahasa Indonesia",
     "tasks": [
+      {
+        "title": "Judul riset / penelusuran referensi",
+        "description": "Rincian kebutuhan data/riset dari web atau Obsidian Vault",
+        "role": "researcher",
+        "priority": "high",
+        "tags": ["Research", "Knowledge", "Obsidian"],
+        "estimatedTime": 120
+      },
       {
         "title": "Judul spesifik tugas",
         "description": "Rincian teknis tugas dan acceptance criteria",
@@ -244,7 +253,7 @@ export interface DecomposedTask {
   const userPrompt = `Mission Goal: ${params.missionGoal}
 Persyaratan Tambahan: ${params.requirements || 'Ikuti arsitektur standar produksi dan best practices modern.'}
 
-Pecah goal di atas menjadi sub-task untuk tim Backend, Frontend, QA, dan Intern sekarang!`;
+Pecah goal di atas menjadi sub-task untuk tim Researcher, Backend, Frontend, QA, dan Intern sekarang!`;
 
     // 1. Coba panggil Python Backend terlebih dahulu (otomatis simpan ke SQLite & Obsidian Vault)
     try {

@@ -313,12 +313,12 @@ export class ThreeOfficeScene {
     this.createAnimatedWallClock();
 
     // 5. 3 Main Workstation Zones
-    // A. ORCHESTRA POD • 1 MAESTRO ONLY (Center Front)
+    // A. ORCHESTRA POD • PM & RESEARCHER (Center Front)
     this.createZonePod(
-      'ORCHESTRA POD • 1 MAESTRO',
+      'ORCHESTRA & RESEARCH POD',
       new THREE.Vector3(0, 0.025, 4.5),
-      6.4,
-      5.4,
+      8.0,
+      5.8,
       0xffffff,
       0x272b36,
       true

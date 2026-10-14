@@ -1,5 +1,6 @@
 export type AgentRole =
   | 'product_manager'
+  | 'researcher'
   | 'frontend'
   | 'backend'
   | 'qa'

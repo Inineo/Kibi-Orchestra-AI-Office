@@ -756,7 +756,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       if (!devCandidate) {
         // Fallback to suitable role if no direct match
         devCandidate = idleAgents.find(
-          (a) => a.role === 'frontend' || a.role === 'backend' || a.role === 'qa' || a.role === 'intern'
+          (a) => a.role === 'researcher' || a.role === 'frontend' || a.role === 'backend' || a.role === 'qa' || a.role === 'intern'
         ) || idleAgents[0];
       }
 
@@ -764,7 +764,9 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
       get().updateAgent(devCandidate.id, {
         status:
-          devCandidate.role === 'qa' || devCandidate.role === 'tester'
+          devCandidate.role === 'researcher'
+            ? 'reviewing'
+            : devCandidate.role === 'qa' || devCandidate.role === 'tester'
             ? 'testing'
             : devCandidate.role === 'reviewer'
             ? 'reviewing'

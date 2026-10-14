@@ -1,13 +1,13 @@
 import { Agent, Task, OfficeEvent, Mission } from '../types/office';
 
 export const INITIAL_AGENTS: Agent[] = [
-  // 1. PRODUCT MANAGER & ORCHESTRATION (Center Orchestra Pod)
+  // 1. PRODUCT MANAGER & ORCHESTRATION (Center Orchestra Pod - Left Desk)
   {
     id: 'agent-pm',
     name: 'Sarah Jenkins',
     role: 'product_manager',
     department: 'orchestra',
-    title: 'Product Manager',
+    title: 'Lead Product Manager',
     status: 'planning',
     idleActivity: 'standby',
     locationState: 'at_desk',
@@ -16,12 +16,12 @@ export const INITIAL_AGENTS: Agent[] = [
     model: 'Architect',
     progress: 75,
     elapsedTime: 184,
-    deskPosition: { x: 0, y: 0, z: 4.5 },
+    deskPosition: { x: -2.0, y: 0, z: 4.5 },
     deskRotationY: Math.PI,
     color: '#E2E8F0',
     accentColor: '#FFFFFF',
     avatarIcon: 'Brain',
-    currentThought: 'Menyusun prioritas user stories, PRD scope, dan acceptance criteria sprint...',
+    currentThought: 'Mengarahkan riset knowledge dan menyusun prioritas sprint backlog...',
     currentAction: 'Finalisasi scope backlog & alokasi tim engineer',
     recentOutputs: [
       'PRD v2.4: Auth Flow, Dashboard & Notification Service',
@@ -34,6 +34,42 @@ export const INITIAL_AGENTS: Agent[] = [
       speedTokensSec: 88,
       toolCallsCount: 26,
       accuracyScore: 98,
+    },
+  },
+
+  // 2. AI RESEARCH SPECIALIST (Center Orchestra Pod - Right Desk)
+  {
+    id: 'agent-researcher',
+    name: 'Dr. Aris Thorne',
+    role: 'researcher',
+    department: 'orchestra',
+    title: 'Research Specialist & Knowledge Scout',
+    status: 'reviewing',
+    idleActivity: 'standby',
+    locationState: 'at_desk',
+    currentTask: 'Scanning Obsidian Vault & crawling technical documentation',
+    currentTaskId: 'task-100',
+    model: 'Fast',
+    progress: 80,
+    elapsedTime: 140,
+    deskPosition: { x: 2.0, y: 0, z: 4.5 },
+    deskRotationY: Math.PI,
+    color: '#10B981',
+    accentColor: '#059669',
+    avatarIcon: 'Compass',
+    currentThought: 'Menelusuri file catatan di docs/ dan mengompilasi executive briefing untuk PM...',
+    currentAction: 'Riset referensi arsitektur dan penelusuran vault Obsidian',
+    recentOutputs: [
+      'Knowledge Brief: WebAuthn FIDO2 Standard Specs',
+      'Extracted 14 architecture rules from Obsidian Docs',
+      'Summarized benchmark API patterns for PM sprint',
+    ],
+    metrics: {
+      tasksCompleted: 16,
+      tokensGenerated: 210000,
+      speedTokensSec: 135,
+      toolCallsCount: 52,
+      accuracyScore: 99,
     },
   },
 
