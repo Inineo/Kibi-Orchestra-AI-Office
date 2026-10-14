@@ -699,13 +699,37 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
             'Memeriksa kesesuaian typing strict mode TypeScript...',
           ];
           nextThought = revThoughts[Math.floor(Math.random() * revThoughts.length)];
-        } else if (luckyAgent.role === 'tester') {
+        } else if (luckyAgent.role === 'qa' || luckyAgent.role === 'tester') {
           const testThoughts = [
-            'Menjalankan batch fuzzing #4,200: 0 uncaught exceptions...',
-            'Menguji concurrent replay attack race condition...',
-            'Evaluasi cakupan test coverage (94.8% statement coverage)...',
+            'Menjalankan audit kerentanan Strix Autonomous Security Scanner...',
+            'Strix memindai CWE/OWASP edge-case & boundary limits via 9Router...',
+            'Menjalankan pen-testing dinamis & fuzz testing pada API endpoints...',
+            'Evaluasi cakupan test coverage & validasi zero-day vulnerability...',
           ];
           nextThought = testThoughts[Math.floor(Math.random() * testThoughts.length)];
+
+          // Panggil Strix scan di background secara asynchronous (10% chance per tick)
+          if (Math.random() > 0.88) {
+            fetch('/api/backend/qa/strix-scan', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: luckyAgent.model,
+                task_id: luckyAgent.currentTaskId,
+              }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.summary) {
+                  state.addEvent({
+                    type: 'progress',
+                    message: `🛡️ [STRIX QA]: ${res.summary}`,
+                    agentId: luckyAgent.id,
+                  });
+                }
+              })
+              .catch(() => {});
+          }
         }
 
         get().updateAgent(luckyAgent.id, {

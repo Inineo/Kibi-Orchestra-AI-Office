@@ -190,6 +190,25 @@ def create_github_issue_api(req: CreateIssueRequest):
     )
     return res
 
+class QAScanRequest(BaseModel):
+    model: Optional[str] = None
+    target_path: Optional[str] = None
+    task_id: Optional[str] = None
+
+@app.post("/api/qa/strix-scan")
+def trigger_qa_strix_scan(req: QAScanRequest):
+    """
+    Tugas Agen QA (Maya Thorne): Menjalankan audit keamanan dan bug hunting
+    menggunakan Strix Autonomous Security Agent dengan model yang aktif di 9Router.
+    """
+    from services.qa_strix import StrixQAService
+    strix_service = StrixQAService()
+    res = strix_service.run_security_scan(
+        target_path=req.target_path,
+        model=req.model
+    )
+    return res
+
 @app.get("/api/obsidian/notes")
 def list_obsidian_notes():
     """Melihat semua file markdown di folder project saat ini (plan, conversation, docs)."""
