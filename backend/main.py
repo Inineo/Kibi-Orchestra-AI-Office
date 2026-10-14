@@ -171,11 +171,14 @@ class CreateIssueRequest(BaseModel):
     body: str
     role: Optional[str] = "task"
     task_id: Optional[str] = None
+    assignees: Optional[List[str]] = None
+    milestone: Optional[str] = None
+    project: Optional[str] = None
 
 @app.post("/api/intern/github-issue")
 def create_github_issue_api(req: CreateIssueRequest):
     """
-    Tugas AI Intern: Membuat issue di GitHub saat ada task baru agar terlacak di repositori.
+    Tugas AI Intern: Membuat issue di GitHub dengan Security Gate dan Rich Metadata.
     """
     from services.intern_safety import InternGitSafetyService
     from pathlib import Path
@@ -186,7 +189,10 @@ def create_github_issue_api(req: CreateIssueRequest):
     res = intern_service.create_github_issue(
         title=req.title,
         body=req.body,
-        labels=[req.role or "task", "ai-orchestra"]
+        labels=[req.role or "enhancement"],
+        assignees=req.assignees,
+        milestone=req.milestone,
+        project=req.project
     )
     return res
 

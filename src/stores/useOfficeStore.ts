@@ -414,7 +414,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
           ],
         });
 
-        // 3B. Otomatis daftarkan task ke GitHub Issues
+        // 3B. Otomatis daftarkan task ke GitHub Issues (dengan Security Gate & Rich Metadata)
         fetch('/api/backend/intern/github-issue', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -422,6 +422,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
             title: t.title,
             body: `### Deskripsi Tugas\n${t.description}\n\n- **Role Assigned**: \`${t.role}\`\n- **Priority**: \`${t.priority}\`\n- **Status**: Pending Execution`,
             role: t.role,
+            assignees: ['Inineo'],
           }),
         })
           .then((r) => r.json())
@@ -432,6 +433,8 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
                 message: `🐙 Mendaftarkan issue GitHub: "${t.title}"`,
                 details: res.issue_url,
               });
+            } else if (res.is_sensitive) {
+              console.log('Task disaring oleh Security Gate (Private):', t.title);
             }
           })
           .catch(() => {});

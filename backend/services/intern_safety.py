@@ -92,28 +92,66 @@ class InternGitSafetyService:
             "uncommitted_changes_count": len(uncommitted)
         }
 
+    def is_sensitive_task(self, title: str, body: str) -> bool:
+        """
+        AI Intern Security Gate:
+        Mengevaluasi apakah task bersifat privat/sensitif/sepele:
+        - Mengandung kata kunci rahasia (token, secret, credential, password, .env, pem, private key)
+        - Konfigurasi internal lokal / typo minor
+        Jika sensitif, task TIDAK BOLEH dibuatkan Issue publik di GitHub.
+        """
+        combined = f"{title.lower()} {body.lower()}"
+        sensitive_keywords = [
+            ".env", "api_key", "apikey", "secret", "token", "password",
+            "private_key", "credential", "bearer", "internal config",
+            "db_pass", "connection string", "scratch script"
+        ]
+        return any(kw in combined for kw in sensitive_keywords)
+
     def create_github_issue(
         self,
         title: str,
         body: str,
         labels: Optional[List[str]] = None,
+        assignees: Optional[List[str]] = None,
+        milestone: Optional[str] = None,
+        project: Optional[str] = None,
         github_token: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        AI Intern: Membuat Issue di GitHub untuk melacak task yang masuk.
-        Prioritas:
-        1. Gunakan GitHub CLI (`gh issue create`) jika gh terpasang & terautentikasi (Zero-config!).
-        2. Gunakan GitHub REST API jika GITHUB_TOKEN tersedia di .env.
-        3. Fallback ke Web URL template jika tidak ada kredensial.
+        AI Intern: Membuat Issue di GitHub dengan Security Gate & Rich Metadata.
         """
         import os
         import shutil
         import subprocess
         import requests
 
+        # 0. SECURITY GATE: Cek apakah task sensitif
+        if self.is_sensitive_task(title, body):
+            return {
+                "success": False,
+                "is_sensitive": True,
+                "message": "Task dinilai sensitif/privat oleh Security Gate. Disimpan eksklusif di Obsidian Vault lokal (Tidak dipublikasikan ke GitHub)."
+            }
+
         repo = "Inineo/Kibi-Orchestra-AI-Office"
-        issue_label = labels[0].upper() if labels else "TASK"
-        full_title = f"[{issue_label}] {title}"
+        
+        # Mapping label standar GitHub
+        valid_labels: List[str] = []
+        if labels:
+            for l in labels:
+                low = l.lower()
+                if "bug" in low or "fix" in low:
+                    valid_labels.append("bug")
+                elif "feat" in low or "enhancement" in low or "research" in low:
+                    valid_labels.append("enhancement")
+                elif "doc" in low or "intern" in low or "readme" in low:
+                    valid_labels.append("documentation")
+        if not valid_labels:
+            valid_labels = ["enhancement"]
+
+        full_title = f"[{valid_labels[0].upper()}] {title}" if not title.startswith("[") else title
+        target_assignees = assignees or ["Inineo"]
 
         # 1. METODE UTAMA: Gunakan GitHub CLI (`gh`) jika tersedia
         gh_path = shutil.which("gh") or r"C:\Program Files\GitHub CLI\gh.exe"
@@ -125,9 +163,14 @@ class InternGitSafetyService:
                     "--title", full_title,
                     "--body", body
                 ]
-                if labels:
-                    for lbl in labels:
-                        cmd.extend(["--label", lbl])
+                for lbl in valid_labels:
+                    cmd.extend(["--label", lbl])
+                for ass in target_assignees:
+                    cmd.extend(["--assignee", ass])
+                if milestone:
+                    cmd.extend(["--milestone", milestone])
+                if project:
+                    cmd.extend(["--project", project])
 
                 res = subprocess.run(
                     cmd,
@@ -144,10 +187,11 @@ class InternGitSafetyService:
                         "issue_url": created_url,
                         "issue_number": issue_num,
                         "method": "gh_cli",
+                        "labels": valid_labels,
+                        "assignees": target_assignees,
                         "message": f"GitHub Issue #{issue_num} berhasil dibuat."
                     }
             except Exception as gh_err:
-                # Lanjut ke fallback jika gh gagal
                 pass
 
         # 2. METODE KEDUA: Gunakan GitHub REST API via GITHUB_TOKEN
@@ -162,8 +206,11 @@ class InternGitSafetyService:
             payload = {
                 "title": full_title,
                 "body": body,
-                "labels": labels or ["task", "ai-orchestra"]
+                "labels": valid_labels,
+                "assignees": target_assignees
             }
+            if milestone:
+                payload["milestone"] = milestone
             try:
                 res = requests.post(url, json=payload, headers=headers, timeout=15)
                 if res.status_code in [200, 201]:
@@ -173,6 +220,8 @@ class InternGitSafetyService:
                         "issue_url": issue_data.get("html_url"),
                         "issue_number": issue_data.get("number"),
                         "method": "rest_api",
+                        "labels": valid_labels,
+                        "assignees": target_assignees,
                         "message": f"GitHub Issue #{issue_data.get('number')} berhasil dibuat."
                     }
                 else:
