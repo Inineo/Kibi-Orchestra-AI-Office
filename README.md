@@ -10,6 +10,7 @@
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![GitHub](https://img.shields.io/badge/GitHub_CLI-181717?style=for-the-badge&logo=github&logoColor=white)](https://cli.github.com/)
 
 </div>
 
@@ -17,7 +18,7 @@
 
 ## 🌟 Overview
 
-Kibi Orchestra is not just another AI chatbot - it's a **complete AI workforce coordination system** that simulates a real software development office in stunning 3D. Watch as AI agents with different roles, authorities, and capabilities collaborate to complete complex tasks, just like a real development team.
+Kibi Orchestra is not just another AI chatbot — it's a **complete AI workforce coordination system** that simulates a real software development office in stunning 3D. Watch as AI agents with different roles, authorities, and capabilities collaborate to complete complex tasks, just like a real development team — complete with GitHub issue tracking, security auditing, and knowledge research.
 
 ### 🎯 Core Concept
 
@@ -25,12 +26,13 @@ Kibi Orchestra is not just another AI chatbot - it's a **complete AI workforce c
 **Kibi Orchestra**: A full virtual office where specialized AI agents work together with hierarchy, authority levels, and escalation protocols
 
 Think of it as a **virtual software company** where:
-- 🎩 **Orchestra Maestro** - Makes strategic decisions (Authority: 10)
-- 🏗️ **Architects** - Design system architecture (Authority: 8)
-- 💻 **Developers** - Write code (Authority: 4-6)
-- 🔍 **QA Engineers** - Test and validate (Authority: 3)
-- 📝 **Technical Writers** - Document everything (Authority: 2)
-- 🎓 **Interns** - Learn and assist (Authority: 1)
+- 🎩 **Orchestra Maestro** — Makes strategic decisions (Authority: 10)
+- 🏗️ **Architects** — Design system architecture (Authority: 8)
+- 💻 **Developers** — Write code (Authority: 4–6)
+- 🔍 **QA Engineers** — Test and validate with AI security scanning (Authority: 3)
+- 📝 **Technical Writers** — Document everything (Authority: 2)
+- 🔬 **AI Research Specialist** — Provides PM with knowledge & research (Authority: 5)
+- 🎓 **Interns** — Create GitHub issues and assist (Authority: 1)
 
 ---
 
@@ -38,31 +40,54 @@ Think of it as a **virtual software company** where:
 
 ### 🏢 Immersive 3D Virtual Office
 - **Real-time 3D rendering** with Three.js
-- Beautiful office environment with dedicated work zones
+- Beautiful office environment with dedicated work zones (Orchestra Pod, Engineering Bay, QA & Docs Studio)
 - Live animated characters representing each AI agent
 - Smooth camera controls with 360° rotation
-- Performance-optimized rendering (60 FPS)
+- Performance-optimized rendering (60 FPS target)
 
 ### 🤖 Intelligent Agent System
-- **Authority-based hierarchy** (0-10 levels)
-- **Dynamic model selection** - Uses budget models for simple tasks, premium models for complex ones
-- **Escalation protocols** - Lower authority agents can escalate to higher authority
-- **Context-aware execution** - Each agent receives only relevant information
-- **Review loops** - Multi-layer quality control (Plan → Execute → Test → Review)
+- **Authority-based hierarchy** (0–10 levels)
+- **Dynamic model selection** — Uses budget models for simple tasks, premium models for complex ones
+- **Escalation protocols** — Lower authority agents can escalate to higher authority
+- **Context-aware execution** — Each agent receives only relevant information
+- **Review loops** — Multi-layer quality control (Plan → Execute → Test → Review)
+
+### 🔬 AI Research Specialist (Dr. Aris Thorne)
+- Dedicated AI agent supporting the Product Manager with knowledge retrieval
+- Searches Obsidian Vault for relevant project notes and SOPs
+- Reduces PM token consumption on repetitive knowledge tasks
+- Integrated into the Orchestra Pod layout alongside the PM desk
+
+### 🔐 Security Gate — Smart Sensitivity Filter
+- PM and AI Intern automatically evaluate task sensitivity before creating public GitHub issues
+- Tasks with sensitive keywords (`.env`, `api_key`, `secret`, `token`, `password`, `credential`, `private_key`) are **blocked from public GitHub** and kept in Obsidian Vault
+- Transparent audit trail — all blocked tasks are logged with their reason
+
+### 🛡️ Strix Autonomous Security Scanner
+- **QA Agent** is powered by [Strix](https://strix.sh) for autonomous bug discovery and penetration testing
+- Dynamically reads the active AI model from the QA agent and routes it through **9Router Gateway**
+- Runs asynchronously in the background after each QA simulation tick
+- Results surfaced via `/api/qa/strix-scan` endpoint
+
+### 📋 Issue-Driven Development (IDD) with GitHub CLI
+- AI Intern creates GitHub Issues **before** implementing changes via `gh` CLI
+- Issues include rich metadata: `assignees`, `labels`, `milestones`
+- PM evaluates sensitivity before allowing public issue creation
+- Full issue lifecycle: Create → Work → Close → Push
 
 ### 🎛️ Real-time Orchestration
 - Live task board with Kanban-style workflow
-- Event stream showing agent activities
-- Agent status monitoring (Idle, Planning, Coding, Testing, Reviewing)
+- Activity feed showing only task-relevant events (no noise)
+- Agent status monitoring (Idle, Planning, Coding, Testing, Reviewing, Researching)
 - Mission progress tracking
-- Cost optimization through smart model routing
+- Cost optimization through smart model routing via 9Router
 
 ### 🔄 Backend Integration
 - **FastAPI** backend for AI orchestration
-- **9Router** integration for multi-provider AI access
-- **Obsidian** vault integration for knowledge management
+- **9Router** integration for multi-provider AI access (OpenAI, Anthropic, Gemini, DeepSeek, Ollama)
+- **Obsidian** vault integration for knowledge management and SOP storage
+- **GitHub CLI** (`gh`) for automated issue management
 - Automated documentation generation
-- SOP (Standard Operating Procedures) management
 
 ---
 
@@ -79,11 +104,12 @@ Think of it as a **virtual software company** where:
 - **Lucide React** - Beautiful icons
 
 ### Backend
-- **Python 3.14** - Backend runtime
-- **FastAPI** - High-performance API framework
-- **9Router** - Multi-provider AI gateway
-- **Requests** - HTTP client
-- **python-dotenv** - Environment management
+- **Python 3.11+** — Backend runtime
+- **FastAPI** — High-performance API framework
+- **9Router** — Multi-provider AI gateway
+- **GitHub CLI (`gh`)** — Automated GitHub issue creation
+- **Strix Agent** — Autonomous security & bug scanning
+- **python-dotenv** — Environment management
 
 ### 3D & Graphics
 - **Three.js 0.186** - WebGL rendering
@@ -97,7 +123,9 @@ Think of it as a **virtual software company** where:
 
 ### Prerequisites
 - **Node.js** 18+ and npm/bun
-- **Python** 3.9+ (for backend)
+- **Python** 3.11+ (for backend)
+- **GitHub CLI** (`gh`) — [Install here](https://cli.github.com/) and run `gh auth login`
+- **9Router** running locally on port `20128`
 - Modern browser with WebGL support
 
 ### Installation
@@ -127,29 +155,36 @@ cd ..
 cp .env.example .env
 ```
 
-Edit `.env` and add your API keys:
+Edit `.env` and fill in your credentials (see `.env.example` for all options):
 ```env
 # 9Router Configuration
 VITE_9ROUTER_URL=http://localhost:20128
 VITE_9ROUTER_API_KEY=your_api_key_here
 
-# Default AI Model
+# Default AI Model (routed via 9Router)
 DEFAULT_AI_MODEL=openai/gpt-4o-mini
 
-# Obsidian Integration (optional)
-OBSIDIAN_ANTIGRAVITY_PATH=D:\Obsidian\Obsidian Memories\antigravity
+# Obsidian Integration (optional but recommended)
+OBSIDIAN_ANTIGRAVITY_PATH=D:\Obsidian\YourVault\antigravity
 CURRENT_PROJECT_NAME=Kibi-Orchestra
 ```
 
-5. **Start the development server**
+> ⚠️ **Never commit your `.env` file.** It is already in `.gitignore`. Only `.env.example` (with empty values) is tracked.
+
+5. **Authenticate GitHub CLI** (required for AI Intern to create issues)
+```bash
+gh auth login
+```
+
+6. **Start the development server**
 
 **Frontend:**
 ```bash
 npm run dev
 ```
-Open http://localhost:3000
+Open http://localhost:5173
 
-**Backend (optional):**
+**Backend:**
 ```bash
 cd backend
 python main.py
@@ -190,35 +225,34 @@ Kibi-Orchestra-V3/
 ├── src/
 │   ├── components/
 │   │   ├── office3d/           # 3D office scene components
-│   │   │   ├── ThreeOfficeScene.ts  # Main 3D engine (1900+ lines)
+│   │   │   ├── ThreeOfficeScene.ts  # Main 3D engine
 │   │   │   └── OfficeCanvas.tsx     # React wrapper
 │   │   ├── panels/             # UI panels (TaskBoard, Stats, Events)
 │   │   ├── modals/             # Modal dialogs
-│   │   ├── simple/             # Simple UI components
-│   │   └── ui/                 # Reusable UI components
+│   │   ├── simple/             # Simple UI components (ActivityFeed, AgentSettings)
+│   │   └── ui/                 # Reusable UI primitives
 │   ├── stores/
-│   │   └── useOfficeStore.ts   # Zustand state management
+│   │   └── useOfficeStore.ts   # Zustand global state + agent simulation
 │   ├── types/
-│   │   └── office.ts           # TypeScript type definitions
+│   │   └── office.ts           # TypeScript type definitions (AgentRole etc.)
 │   ├── data/
 │   │   └── initialData.ts      # Default agent configurations
 │   └── lib/
 │       ├── utils.ts            # Utility functions
-│       └── aiClient.ts         # AI client integration
+│       └── aiClient.ts         # AI client integration (9Router)
 ├── backend/
-│   ├── main.py                 # FastAPI server
+│   ├── main.py                 # FastAPI server (all routes)
 │   ├── config.py               # Configuration management
+│   ├── requirements.txt        # Python dependencies
 │   ├── services/
-│   │   ├── orchestrator.py     # AI workflow orchestration
-│   │   ├── obsidian.py         # Obsidian integration
-│   │   ├── caveman.py          # Token compression
-│   │   └── intern_safety.py    # Safety protocols
-│   └── *.py                    # Utility scripts
-├── ai-workforce-orchestra-docs/  # Comprehensive documentation
-│   ├── 01-PROJECT-OVERVIEW.md
-│   ├── 02-ARCHITECTURE.md
-│   ├── 03-TECH-STACK.md
-│   └── ...
+│   │   ├── orchestrator.py     # AI workflow orchestration (PM + Researcher)
+│   │   ├── obsidian.py         # Obsidian vault read/write integration
+│   │   ├── intern_safety.py    # GitHub issue creation + sensitivity gate
+│   │   ├── qa_strix.py         # Strix autonomous security scanner integration
+│   │   └── caveman.py          # Token compression utility
+│   └── scripts/                # Setup & sync utility scripts
+├── .env.example                # Environment template (safe to commit)
+├── .gitignore                  # Excludes .env, secrets, vault paths
 └── package.json
 ```
 
@@ -229,9 +263,9 @@ Kibi-Orchestra-V3/
 The virtual office features three distinct zones:
 
 ### 🎭 Orchestra Pod (Center)
-- **1 Maestro** - Strategic command center
-- Panoramic curved monitor for system-wide overview
-- Premium ergonomic setup
+- **Product Manager (PM)** — Strategic command and task delegation
+- **AI Research Specialist (Dr. Aris Thorne)** — Knowledge research supporting the PM
+- Panoramic curved monitors for system-wide overview
 
 ### 💻 Engineering Bay (Left Wing)
 - **Frontend & Backend Developers**
@@ -239,9 +273,9 @@ The virtual office features three distinct zones:
 - Collaborative development zone
 
 ### 📋 Quality & Docs Studio (Right Wing)
-- **QA Engineer & Tech Writer**
-- Testing and documentation workspace
-- Quality assurance hub
+- **QA Engineer** — Powered by Strix autonomous security scanner
+- **Technical Writer** — Documentation workspace
+- Quality assurance and knowledge hub
 
 ---
 
@@ -252,27 +286,47 @@ The virtual office features three distinct zones:
 | **Orchestra Maestro** | 10 | Premium (Claude-3.5) | Strategic decisions, final approval |
 | **System Architect** | 8 | Premium (Claude-3.5) | Architecture design, locked decisions |
 | **Senior Developer** | 6 | Dynamic | Complex implementations |
+| **AI Research Specialist** | 5 | Standard | Knowledge retrieval, Obsidian search, research support |
 | **Developer** | 4 | Budget (DeepSeek) | Standard coding tasks |
-| **QA Engineer** | 3 | Standard (GPT-4) | Testing & validation |
+| **QA Engineer** | 3 | Standard + Strix | Testing, validation & security scanning |
 | **Technical Writer** | 2 | Budget (Gemini-Flash) | Documentation |
-| **Intern** | 1 | Budget | Learning & assistance |
+| **Intern** | 1 | Budget | GitHub issue creation, learning & assistance |
 
-**Key Principle**: Lower authority cannot override higher authority decisions - they must escalate!
+**Key Principle**: Lower authority cannot override higher authority decisions — they must escalate!
 
 ---
 
-## 🎯 Workflow Example
+## 🔐 Security Policy
+
+### What Is Protected
+- Real `.env` files are excluded via `.gitignore` — never tracked
+- No API keys, tokens, or credentials are hardcoded in source files
+- Sensitive tasks (involving `api_key`, `secret`, `token`, `.env`, `password`, `credential`, `private_key`) are **intercepted by the Security Gate** and stored in Obsidian Vault instead of public GitHub Issues
+
+### What Is Safe to Commit
+- `.env.example` — template with empty values ✅
+- All source code — no hardcoded secrets ✅
+- `backend/config.py` — reads from environment variables only ✅
+
+### Git History Audit
+The repository's git history has been verified — no sensitive files were ever committed. A dedicated security commit (`835dff6`) enhanced `.gitignore` and removed any internal documents from tracking.
+
+---
+
+## 🎯 Workflow: Issue-Driven Development (IDD)
 
 ```mermaid
 graph TD
-    A[User Mission] --> B[Orchestra Maestro Analyzes]
-    B --> C[Architect Designs System]
-    C --> D[Developer Implements]
-    D --> E{QA Tests}
-    E -->|Pass| F[Tech Writer Documents]
-    E -->|Fail| D
-    F --> G[Orchestra Maestro Approves]
-    G --> H[Mission Complete]
+    A[User Mission] --> B[PM + Researcher analyze and plan]
+    B --> C{Sensitive task?}
+    C -->|Yes| D[Store in Obsidian Vault only]
+    C -->|No| E[AI Intern creates GitHub Issue]
+    E --> F[Developer implements changes]
+    F --> G{QA + Strix scan}
+    G -->|Pass| H[Tech Writer documents]
+    G -->|Fail| I[New bug issue created]
+    H --> J[Intern closes GitHub Issue]
+    J --> K[Push and deploy]
 ```
 
 ---
@@ -280,19 +334,25 @@ graph TD
 ## 🔧 Backend API Endpoints
 
 ### Mission Management
-- `POST /api/mission/start` - Start a new mission
-- `GET /api/mission/{id}/status` - Check mission status
-- `POST /api/mission/{id}/abort` - Abort mission
+- `POST /api/mission/start` — Start a new mission
+- `GET /api/mission/{id}/status` — Check mission status
+- `POST /api/mission/{id}/abort` — Abort mission
 
 ### Agent Operations
-- `POST /api/agent/{role}/assign` - Assign task to agent
-- `GET /api/agent/{role}/status` - Get agent status
-- `POST /api/agent/{role}/escalate` - Escalate to higher authority
+- `POST /api/agent/{role}/assign` — Assign task to agent
+- `GET /api/agent/{role}/status` — Get agent status
+- `POST /api/agent/{role}/escalate` — Escalate to higher authority
+
+### GitHub Issue Management
+- `POST /api/intern/github-issue` — Create GitHub issue via `gh` CLI
+
+### QA & Security
+- `POST /api/qa/strix-scan` — Run Strix autonomous security scan
 
 ### Obsidian Integration
-- `POST /api/obsidian/sync-docs` - Sync documentation to vault
-- `POST /api/obsidian/create-index` - Generate index notes
-- `POST /api/obsidian/create-sop` - Create SOPs
+- `POST /api/obsidian/sync-docs` — Sync documentation to vault
+- `POST /api/obsidian/create-index` — Generate index notes
+- `POST /api/obsidian/create-sop` — Create SOPs
 
 ---
 
@@ -315,38 +375,43 @@ graph TD
 
 ## 🔮 Roadmap
 
-### Phase 1: MVP (Current)
-- [x] 3D office visualization
-- [x] Basic agent system
-- [x] Task board UI
-- [x] Backend orchestration
-- [x] 9Router integration
+### Phase 1: Foundation ✅ (Complete)
+- [x] 3D office visualization with Three.js
+- [x] Authority-based agent hierarchy system
+- [x] Task board UI (Kanban)
+- [x] FastAPI backend orchestration
+- [x] 9Router multi-provider AI gateway integration
+- [x] Obsidian Vault integration for knowledge management
 
-### Phase 2: Intelligence
-- [ ] Memory system for agents
-- [ ] Parallel task execution
-- [ ] Advanced context optimization
-- [ ] Cost prediction engine
+### Phase 2: Intelligence ✅ (Complete)
+- [x] AI Research Specialist agent (Dr. Aris Thorne)
+- [x] GitHub CLI integration for Issue-Driven Development
+- [x] Strix autonomous security & bug scanning (QA agent)
+- [x] Smart Sensitivity Gate (no leaking sensitive tasks publicly)
+- [x] Activity feed filtering (clean, task-focused logs)
+- [x] Backend reorganization (modular services architecture)
+
+### Phase 3: Scale 🚧 (In Progress)
+- [ ] Memory system for agents (persistent context across missions)
+- [ ] Parallel task execution (multiple missions simultaneously)
+- [ ] Advanced cost prediction engine
 - [ ] Custom workflow templates
-
-### Phase 3: Scale
 - [ ] Multi-mission support
 - [ ] Team collaboration features
-- [ ] A/B testing workflows
-- [ ] Production deployment
-- [ ] Cloud hosting
+- [ ] Production deployment & cloud hosting
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our contributing guidelines:
+Contributions are welcome! We follow **Issue-Driven Development**:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a GitHub Issue describing your change
+3. Create a feature branch (`git checkout -b feature/amazing-feature`)
+4. Commit your changes (`git commit -m 'feat: add amazing feature (Closes #N)'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request linked to your issue
 
 ---
 
@@ -358,11 +423,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **9Router** - Multi-provider AI gateway
-- **Antigravity** - AI-powered IDE
-- **Three.js** - Amazing 3D library
-- **React** & **Vite** - Modern web development
-- **FastAPI** - High-performance Python API framework
+- **9Router** — Multi-provider AI gateway
+- **Antigravity** — AI-powered IDE
+- **Strix** — Autonomous security scanner
+- **GitHub CLI** — Seamless issue management from terminal
+- **Three.js** — Amazing 3D library
+- **React** & **Vite** — Modern web development
+- **FastAPI** — High-performance Python API framework
+- **Obsidian** — Knowledge management and SOP vault
 
 ---
 
