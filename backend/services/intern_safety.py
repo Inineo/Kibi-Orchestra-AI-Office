@@ -101,15 +101,57 @@ class InternGitSafetyService:
     ) -> Dict[str, Any]:
         """
         AI Intern: Membuat Issue di GitHub untuk melacak task yang masuk.
-        Jika token GITHUB_TOKEN tersedia di env, langsung buat via GitHub REST API.
-        Jika belum ada token, siapkan URL issue template siap pakai.
+        Prioritas:
+        1. Gunakan GitHub CLI (`gh issue create`) jika gh terpasang & terautentikasi (Zero-config!).
+        2. Gunakan GitHub REST API jika GITHUB_TOKEN tersedia di .env.
+        3. Fallback ke Web URL template jika tidak ada kredensial.
         """
         import os
+        import shutil
+        import subprocess
         import requests
 
-        token = github_token or os.environ.get("GITHUB_TOKEN")
         repo = "Inineo/Kibi-Orchestra-AI-Office"
+        issue_label = labels[0].upper() if labels else "TASK"
+        full_title = f"[{issue_label}] {title}"
 
+        # 1. METODE UTAMA: Gunakan GitHub CLI (`gh`) jika tersedia
+        gh_path = shutil.which("gh") or r"C:\Program Files\GitHub CLI\gh.exe"
+        if os.path.exists(gh_path) or shutil.which("gh"):
+            try:
+                cmd = [
+                    gh_path, "issue", "create",
+                    "--repo", repo,
+                    "--title", full_title,
+                    "--body", body
+                ]
+                if labels:
+                    for lbl in labels:
+                        cmd.extend(["--label", lbl])
+
+                res = subprocess.run(
+                    cmd,
+                    cwd=str(self.repo_root),
+                    capture_output=True,
+                    text=True,
+                    timeout=20
+                )
+                if res.returncode == 0:
+                    created_url = res.stdout.strip()
+                    issue_num = created_url.split("/")[-1] if "/" in created_url else ""
+                    return {
+                        "success": True,
+                        "issue_url": created_url,
+                        "issue_number": issue_num,
+                        "method": "gh_cli",
+                        "message": f"GitHub Issue #{issue_num} berhasil dibuat oleh AI Intern via GitHub CLI."
+                    }
+            except Exception as gh_err:
+                # Lanjut ke fallback jika gh gagal
+                pass
+
+        # 2. METODE KEDUA: Gunakan GitHub REST API via GITHUB_TOKEN
+        token = github_token or os.environ.get("GITHUB_TOKEN")
         if token:
             url = f"https://api.github.com/repos/{repo}/issues"
             headers = {
@@ -118,7 +160,7 @@ class InternGitSafetyService:
                 "X-GitHub-Api-Version": "2022-11-28"
             }
             payload = {
-                "title": f"[{labels[0].upper() if labels else 'TASK'}] {title}",
+                "title": full_title,
                 "body": body,
                 "labels": labels or ["task", "ai-orchestra"]
             }
@@ -130,7 +172,8 @@ class InternGitSafetyService:
                         "success": True,
                         "issue_url": issue_data.get("html_url"),
                         "issue_number": issue_data.get("number"),
-                        "message": f"GitHub Issue #{issue_data.get('number')} berhasil dibuat oleh AI Intern."
+                        "method": "rest_api",
+                        "message": f"GitHub Issue #{issue_data.get('number')} berhasil dibuat oleh AI Intern via REST API."
                     }
                 else:
                     return {
@@ -141,14 +184,14 @@ class InternGitSafetyService:
             except Exception as e:
                 return {"success": False, "message": str(e)}
 
-        # Fallback jika GITHUB_TOKEN belum diatur
+        # 3. METODE FALLBACK: Tautan browser jika gh dan token tidak tersedia
         import urllib.parse
-        encoded_title = urllib.parse.quote(title)
+        encoded_title = urllib.parse.quote(full_title)
         encoded_body = urllib.parse.quote(body)
         quick_link = f"https://github.com/{repo}/issues/new?title={encoded_title}&body={encoded_body}"
         return {
             "success": True,
             "is_link_only": True,
             "issue_url": quick_link,
-            "message": "AI Intern telah menyiapkan tautan pembuatan issue GitHub (atur GITHUB_TOKEN di .env untuk otomatisasi penuh tanpa klik)."
+            "message": "AI Intern telah menyiapkan tautan pembuatan issue GitHub."
         }
