@@ -813,7 +813,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
     // --- 5. NATURAL IDLE ACTIVITY & OFFICE EXPLORATION (Agents leave desks, wander & socialize) ---
     if (idleAgents.length >= 2 && Math.random() > 0.5) {
-      // SOCIAL INTERACTION: Pair of idle agents meet and chat!
+      // SOCIAL INTERACTION: Pair of idle agents meet and chat! (Hanya animasi visual di 3D, tidak dicatat ke log aktivitas)
       const candA = idleAgents[0];
       const candB = idleAgents[1];
 
@@ -828,12 +828,6 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         idleActivity: 'standby',
         currentThought: `💬 Berbagi wawasan dengan ${candA.name} di collaboration table...`,
         currentAction: `Mengobrol dengan ${candA.name} di collaboration table`,
-      });
-
-      state.addEvent({
-        type: 'message',
-        message: `💬 ${candA.name} & ${candB.name} bertemu dan berdiskusi di collaboration table`,
-        agentId: candA.id,
       });
       return;
     }
@@ -875,14 +869,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         currentThought: choice.thought,
         currentAction: choice.action,
       });
-
-      if (Math.random() > 0.7) {
-        state.addEvent({
-          type: 'message',
-          message: `${candidate.name}: ${choice.action}`,
-          agentId: candidate.id,
-        });
-      }
+      // Catatan: Aktivitas santai/idle seperti kopi atau istirahat tidak dicatat ke log aktivitas
     }
   },
 

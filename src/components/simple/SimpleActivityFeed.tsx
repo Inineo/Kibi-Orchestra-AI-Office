@@ -16,7 +16,16 @@ export const SimpleActivityFeed: React.FC = () => {
   const { events, clearEvents, selectAgent } = useOfficeStore();
   const [filter, setFilter] = useState<string>('all');
 
-  const filteredEvents = events.filter((e) => {
+  // Hanya tampilkan log terkait task kerja (eksekusi, progress, error/blocker, commit artifact, review)
+  const taskEvents = events.filter((e) => {
+    // Abaikan jika tipe event message dan tidak ada keterkaitan dengan task/sprint
+    if (e.type === 'message' && !e.taskId && !e.taskKey) return false;
+    // Abaikan log reset atau benchmark simulator
+    if (e.message.toLowerCase().includes('simulator reset') || e.message.toLowerCase().includes('initial state')) return false;
+    return true;
+  });
+
+  const filteredEvents = taskEvents.filter((e) => {
     if (filter === 'all') return true;
     return e.type === filter;
   });
