@@ -144,7 +144,7 @@ class InternGitSafetyService:
                         "issue_url": created_url,
                         "issue_number": issue_num,
                         "method": "gh_cli",
-                        "message": f"GitHub Issue #{issue_num} berhasil dibuat oleh AI Intern via GitHub CLI."
+                        "message": f"GitHub Issue #{issue_num} berhasil dibuat."
                     }
             except Exception as gh_err:
                 # Lanjut ke fallback jika gh gagal
@@ -173,7 +173,7 @@ class InternGitSafetyService:
                         "issue_url": issue_data.get("html_url"),
                         "issue_number": issue_data.get("number"),
                         "method": "rest_api",
-                        "message": f"GitHub Issue #{issue_data.get('number')} berhasil dibuat oleh AI Intern via REST API."
+                        "message": f"GitHub Issue #{issue_data.get('number')} berhasil dibuat."
                     }
                 else:
                     return {
