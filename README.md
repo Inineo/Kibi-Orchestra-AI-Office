@@ -402,16 +402,14 @@ graph TD
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing & Forking
 
-Contributions are welcome! We follow **Issue-Driven Development**:
+> **Note on Project Status**: **TUYUL Orchestra** saat ini dikembangkan secara independen sebagai proyek pribadi aktif. Untuk saat ini, **kami belum menerima Pull Request atau kontribusi kode langsung ke repositori utama**.
 
-1. Fork the repository
-2. Create a GitHub Issue describing your change
-3. Create a feature branch (`git checkout -b feature/amazing-feature`)
-4. Commit your changes (`git commit -m 'feat: add amazing feature (Closes #N)'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request linked to your issue
+Namun, repositori ini berlisensi open source ([MIT License](LICENSE))! Anda sangat dipersilakan untuk:
+- 🍴 **Fork** repositori ini ke akun Anda sendiri.
+- 🚀 Bereksperimen dan mengembangkan fitur kustom sesuai kebutuhan Anda secara mandiri.
+- ⭐ Memberikan Star atau membuka **GitHub Issue** jika menemukan bug atau ingin berbagi ide/feedback.
 
 ---
 
