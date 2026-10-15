@@ -240,7 +240,7 @@ export interface DecomposedTask {
   }> {
     const model = params.model || 'Architect';
 
-    const systemPrompt = `Kamu adalah Product Manager (PM) Senior dalam sistem Kibi Orchestra AI Workforce.
+    const systemPrompt = `Kamu adalah Product Manager (PM) Senior dalam sistem TUYUL Orchestra AI Workforce (Task Unified Yield & Utility Layer).
   Tugasmu adalah menganalisis Mission Goal / PRD dari user, lalu memecahnya secara terstruktur menjadi sub-task teknis terpisah:
   1. RESEARCHER: Bertanggung jawab mencari informasi, referensi teknis online, dan menggali knowledge dari file Obsidian Vault agar tim/PM memiliki konteks akurat tanpa boros token.
   2. BACKEND: Bertanggung jawab atas REST API, database schema, autentikasi, dan logika data.

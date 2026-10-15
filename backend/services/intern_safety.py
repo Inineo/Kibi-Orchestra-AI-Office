@@ -134,7 +134,7 @@ class InternGitSafetyService:
                 "message": "Task dinilai sensitif/privat oleh Security Gate. Disimpan eksklusif di Obsidian Vault lokal (Tidak dipublikasikan ke GitHub)."
             }
 
-        repo = "Inineo/Kibi-Orchestra-AI-Office"
+        repo = "Inineo/TUYUL-Orchestra"
         
         # Mapping label standar GitHub
         valid_labels: List[str] = []

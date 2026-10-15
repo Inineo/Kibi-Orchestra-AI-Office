@@ -10,9 +10,9 @@ from services.caveman import CavemanCompressor
 from services.orchestrator import WorkflowOrchestrator
 
 app = FastAPI(
-    title="Kibi Orchestra AI Workforce - Python Backend",
+    title="TUYUL Orchestra — Task Unified Yield & Utility Layer",
     version="1.0.0",
-    description="Backend Orchestrator with Obsidian Vault & Caveman Token Optimizer"
+    description="Autonomous Multi-Agent Orchestrator with SQLite, Obsidian Vault & Strix Security"
 )
 
 # Allow CORS for React Frontend

@@ -1,8 +1,8 @@
-# 🎭 Kibi Orchestra - AI Workforce Management System
+# 🎭 TUYUL Orchestra — Task Unified Yield & Utility Layer
 
 <div align="center">
 
-**A revolutionary 3D virtual office where AI agents work together as an orchestrated team**
+**A revolutionary 3D virtual office where autonomous AI agents work together as an orchestrated workforce**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
@@ -18,12 +18,12 @@
 
 ## 🌟 Overview
 
-Kibi Orchestra is not just another AI chatbot — it's a **complete AI workforce coordination system** that simulates a real software development office in stunning 3D. Watch as AI agents with different roles, authorities, and capabilities collaborate to complete complex tasks, just like a real development team — complete with GitHub issue tracking, security auditing, and knowledge research.
+**TUYUL** (**T**ask **U**nified **Y**ield & **U**tility **L**ayer) **Orchestra** is not just another AI chatbot — it's a **complete autonomous AI workforce coordination system** that simulates a real software development office in stunning 3D. Watch as specialized AI agents with different roles, authorities, and capabilities collaborate to complete complex tasks — complete with parallel execution, 9Router cost prediction, GitHub issue tracking, Strix security scanning, and Obsidian knowledge research.
 
 ### 🎯 Core Concept
 
 **Traditional AI Agents**: Single AI model answering questions  
-**Kibi Orchestra**: A full virtual office where specialized AI agents work together with hierarchy, authority levels, and escalation protocols
+**TUYUL Orchestra**: A full virtual office where specialized AI agents work together with hierarchy, authority levels, and escalation protocols
 
 Think of it as a **virtual software company** where:
 - 🎩 **Orchestra Maestro** — Makes strategic decisions (Authority: 10)
@@ -132,8 +132,8 @@ Think of it as a **virtual software company** where:
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/Inineo/Kibi-Orchestra-AI-Office.git
-cd Kibi-Orchestra-AI-Office
+git clone https://github.com/Inineo/TUYUL-Orchestra.git
+cd TUYUL-Orchestra
 ```
 
 2. **Install frontend dependencies**
@@ -437,13 +437,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 **Project Maintainer**: Inineo  
-**Repository**: [github.com/Inineo/Kibi-Orchestra-AI-Office](https://github.com/Inineo/Kibi-Orchestra-AI-Office)
+**Repository**: [github.com/Inineo/TUYUL-Orchestra](https://github.com/Inineo/TUYUL-Orchestra)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by the AI Orchestra Team**
+**Made with ❤️ by the TUYUL Orchestra Team**
 
 ⭐ Star this repo if you find it useful!
 
