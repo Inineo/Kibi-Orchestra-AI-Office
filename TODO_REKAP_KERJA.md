@@ -1,67 +1,67 @@
 # 📋 Kibi Orchestra AI Office - Status & Rencana Kerja
 
-**Tanggal Terakhir Update:** 11 Oktober 2026  
-**Status Build:** ✅ Sukses (`npm run build` 0 error)
+**Tanggal Terakhir Update:** 15 Oktober 2026  
+**Status Build:** ✅ Sukses (`npm run build` 0 error)  
+**Status Repo:** Clean (No uncommitted changes, Phase 1 & 2 Completed)
 
 ---
 
-## ✅ 1. Apa Saja yang Sudah Dikerjakan Hari Ini
+## ✅ 1. Rekap Fitur Selesai (Phase 1 & Phase 2)
 
-### A. Arsitektur Role & Spesialisasi Agent
-1. **Pemisahan Tegas Role QA & Intern**:
-   - Menambahkan role **QA Automation Engineer** (`qa`) sebagai role mandiri di sistem TypeScript & UI settings ([src/types/office.ts](file:///e:/Web/Kibi-Orchestra-V3/src/types/office.ts)).
-   - Memasukkan agent **Maya Thorne** (`agent-qa`) di [src/data/initialData.ts](file:///e:/Web/Kibi-Orchestra-V3/src/data/initialData.ts) yang fokus pada automated testing, validasi API, dan regression test.
-   - Mendefinisikan ulang peran **Alex Novak** (`agent-intern`) khusus untuk:
-     - Verifikasi keamanan Git (inspeksi branch, push/pull check).
-     - Pengarsipan catatan & pembuatan Wikilinks Markdown ke Obsidian.
-2. **Autonomous Task Dispatcher Ketat**:
-   - Memperbarui logic di [src/stores/useOfficeStore.ts](file:///e:/Web/Kibi-Orchestra-V3/src/stores/useOfficeStore.ts) agar subtask **hanya** bisa diklaim oleh role yang sesuai (`Frontend` -> Frontend, `Backend` -> Backend, `QA` -> QA, `Intern` -> Intern).
+### A. Arsitektur Role & Agent Baru
+1. **AI Research Specialist (Dr. Aris Thorne)**:
+   - Agent riset mandiri (Authority 5) terintegrasi ke Orchestra Pod.
+   - Bertugas mencari konteks dan SOP di Obsidian Vault untuk memangkas konsumsi token PM.
+2. **Spesialisasi QA & Integrasi Strix Scanner**:
+   - Integrasi autonomous security & bug scanner via [backend/services/qa_strix.py](file:///e:/Web/Kibi-Orchestra-V3/backend/services/qa_strix.py) & endpoint `/api/qa/strix-scan`.
+   - Sinkronisasi dinamis model AI QA ke gateway 9Router.
+3. **Pemisahan Role QA & Intern**:
+   - Role mandiri di TypeScript, UI settings, dan initial data.
+   - Dispatcher ketat di [src/stores/useOfficeStore.ts](file:///e:/Web/Kibi-Orchestra-V3/src/stores/useOfficeStore.ts) sesuai deskripsi role.
 
-### B. PM Decomposition & PM Review Gate
-1. **Dekomposisi Misi oleh PM**:
-   - Implementasi `decomposeMissionWithPM` di [src/lib/aiClient.ts](file:///e:/Web/Kibi-Orchestra-V3/src/lib/aiClient.ts) dan backend Python di [backend/services/orchestrator.py](file:///e:/Web/Kibi-Orchestra-V3/backend/services/orchestrator.py).
-   - PM secara otomatis memecah goal besar menjadi daftar subtask terstruktur beserta alokasi role dan acceptance criteria.
-2. **PM Quality Gate (Review)**:
-   - Implementasi `reviewMissionByPM` di frontend & backend (`POST /api/missions/review`).
-   - PM memvalidasi hasil kerja seluruh tim sebelum menandai misi sebagai `APPROVED` atau mengembalikannya sebagai `NEEDS_REVISION`.
+### B. Keamanan & Issue-Driven Development (IDD)
+1. **Smart Sensitivity Gate ([backend/services/intern_safety.py](file:///e:/Web/Kibi-Orchestra-V3/backend/services/intern_safety.py))**:
+   - Filter otomatis kata kunci sensitif (`.env`, `api_key`, `secret`, `token`, `password`, `credential`, `private_key`).
+   - Mencegah kebocoran rahasia ke publik GitHub; task sensitif dialihkan ke Obsidian Vault.
+2. **Integrasi GitHub CLI (`gh`)**:
+   - Pembuatan issue otomatis dengan metadata lengkap (`assignees`, `labels`, `milestones`) tanpa signature/attribution noise.
 
-### C. Integrasi & Isolasi Obsidian Vault
-1. **Isolasi Folder per Project**:
-   - Struktur folder mandiri di `D:\Obsidian\Obsidian Memories\antigravity\<project_name>\`:
-     - `plan/` (dokumen perencanaan misi)
-     - `conversation/` (log percakapan/diskusi agent)
-     - `docs/` (dokumentasi teknis dan SOP)
-   - Berhasil diuji untuk `Kibi-Orchestra` dan `Project-Alpha`.
-2. **Eliminasi Cross-Contamination**:
-   - Tag diskop per project (contoh: `#Kibi-Orchestra/plan` bukan tag global `#plan`).
-   - Filter node tag di Obsidian Graph View dinonaktifkan agar graph antar-proyek tidak saling menempel/terkontaminasi.
-
-### D. Pembersihan Script Scratch & Perbaikan Error
-- Menghapus file-file scratch CSS sementara yang sempat tersimpan dengan ekstensi `.py` (`create_graph_glow_css.py`, dll.) yang sebelumnya memicu syntax error.
+### C. Orchestrator Backend & Obsidian Isolation
+1. **Dekomposisi & Review Gate oleh PM**:
+   - Endpoint `POST /api/missions/decompose` dan `POST /api/missions/review`.
+   - Alur verifikasi kualitas terstruktur (Plan → Execute → Test → Review).
+2. **Isolasi Folder Obsidian per Project**:
+   - Folder terpisah (`plan/`, `conversation/`, `docs/`) dengan tag diskop per proyek guna menghindari kontaminasi Graph View.
+3. **Token Optimization**:
+   - Integrasi utilitas token compression di [backend/services/caveman.py](file:///e:/Web/Kibi-Orchestra-V3/backend/services/caveman.py).
 
 ---
 
-## 🎯 2. Apa yang Akan Dikerjakan Besok
+## 🚧 2. Status Task Aktif (Phase 3: Scale)
 
-### 1. Integrasi Penuh UI Frontend ke Backend Orchestrator
-- **Koneksi Modal Create Mission**:
-  - Hubungkan [src/components/modals/CreateTaskModal.tsx](file:///e:/Web/Kibi-Orchestra-V3/src/components/modals/CreateTaskModal.tsx) ke endpoint `POST /api/missions/decompose` di backend (atau fallback ke client-side LLM).
-  - Begitu user membuat mission baru, PM langsung memecah task, membuat file `plan/<mission-id>.md` di Obsidian, dan menampilkan subtask ke papan Kanban.
-
-### 2. Siklus Eksekusi Nyata & PM Review Otomatis
-- **Autonomous Execution Loop**:
-  - Agent (Backend, Frontend, QA, Intern) menjalankan subtask mereka masing-masing secara berurutan.
-  - Intern otomatis memvalidasi git branch dan membuat log di Obsidian setelah subtask selesai.
-- **Trigger Review PM**:
-  - Saat semua subtask berstatus `done`, picu evaluasi PM (`reviewMissionByPM`).
-  - Update status misi di dashboard menjadi `APPROVED` atau buatkan subtask revisi baru jika `NEEDS_REVISION`.
-
-### 3. Context Injection (Anti-Halusinasi)
-- Sebelum Frontend/Backend mengeksekusi subtask, suntikkan ringkasan dari file `plan/*.md` dan `docs/*.md` ke prompt LLM agar agent bekerja selaras dengan spek proyek tanpa berasumsi liar.
-
-### 4. Sinkronisasi Status Visual di 3D Office
-- Pastikan animasi 3D agent (status `working`, `thinking`, `idle`) bergerak selaras dengan status eksekusi task di store.
+### ✅ Selesai Dikerjakan (Hari Ini):
+1. **Sinkronisasi Prisma Client & Database SQLite** *(Selesai via Agent Lain)*:
+   - Schema di [backend/prisma/schema.prisma](file:///e:/Web/Kibi-Orchestra-V3/backend/prisma/schema.prisma) (`Mission`, `Task`, `Agent`, `MissionReview`, `TaskArtifact`) telah digenerate dan tersinkronisasi.
+2. **Agent Memory Retrieval & Persistence** *(Selesai via Agent Lain)*:
+   - Mekanisme penyimpanan riwayat pengerjaan dan ringkasan artefak ke database aktif.
+3. **Parallel Subtask Execution (Concurrent Multi-Agent Engine)**:
+   - Diimplementasikan di [src/stores/useOfficeStore.ts](file:///e:/Web/Kibi-Orchestra-V3/src/stores/useOfficeStore.ts).
+   - Seluruh agent aktif maju serentak per tick (paralel), dan dispatcher membagikan semua task pending ke seluruh agent idle yang cocok peranannya dalam satu loop tanpa harus menunggu antrean giliran satu per satu.
+4. **9Router Cost Prediction & Token Estimator**:
+   - Diimplementasikan di [src/lib/aiClient.ts](file:///e:/Web/Kibi-Orchestra-V3/src/lib/aiClient.ts) (`estimateTokensAndCost`) dan [src/components/modals/CreateTaskModal.tsx](file:///e:/Web/Kibi-Orchestra-V3/src/components/modals/CreateTaskModal.tsx).
+   - Live widget preview estimasi token dan biaya USD untuk mode **PM Decompose** maupun **Tiket Manual Tunggal**.
 
 ---
 
-*Catatan: Dokumen ini disimpan di root proyek sebagai panduan kerja harian.*
+## 🎯 3. Backlog Task Berikutnya yang Siap Dikerjakan
+
+- [ ] **Custom Workflow Templates Modal**:
+  - Preset misi 1-klik di modal task (Fullstack Feature, Security Audit, Bugfix & Test, API Refactoring).
+- [ ] **Git Branch & PR Lifecycle Automation**:
+  - Otomasi `git checkout -b`, commit, dan `gh pr create` via AI Intern saat task selesai diaudit.
+- [ ] **WebSocket / SSE Real-time Bridge**:
+  - Integrasi live streaming event status agent dari FastAPI backend ke UI tanpa polling berkala.
+
+---
+
+*Catatan: Dokumen ini diperbarui per 15 Oktober 2026. Phase 3 fondasi database & concurrency selesai.*

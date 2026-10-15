@@ -44,6 +44,51 @@ export interface RouterModel {
   owned_by?: string;
 }
 
+export interface CostEstimate {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCostUsd: number;
+  model: string;
+}
+
+// Approximate price per 1M tokens ($ USD) for 9Router aliases / common models
+export const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  Daily: { input: 0.15, output: 0.60 }, // gpt-4o-mini tier
+  Fast: { input: 0.075, output: 0.30 }, // flash / lightweight tier
+  Coding_Specialist: { input: 0.55, output: 2.19 }, // deepseek-coder / sonnet tier
+  Architect: { input: 3.00, output: 15.00 }, // claude-3.5-sonnet / reasoning tier
+  Reviewer: { input: 0.55, output: 2.19 },
+  'gemini/gemini-3.7-flash': { input: 0.10, output: 0.40 },
+};
+
+/**
+ * Estimasi penggunaan token & biaya input/output berdasarkan teks & model
+ */
+export function estimateTokensAndCost(
+  inputText: string,
+  modelName: string = 'Daily',
+  expectedOutputRatio: number = 1.8
+): CostEstimate {
+  // ~4 karakter per token estimasi rata-rata bahasa alami & kode
+  const inputTokens = Math.max(15, Math.ceil(inputText.length / 4));
+  const outputTokens = Math.max(50, Math.ceil(inputTokens * expectedOutputRatio));
+  const totalTokens = inputTokens + outputTokens;
+
+  const pricing = MODEL_PRICING[modelName] || MODEL_PRICING['Daily'];
+  const inputCost = (inputTokens / 1_000_000) * pricing.input;
+  const outputCost = (outputTokens / 1_000_000) * pricing.output;
+  const estimatedCostUsd = Number((inputCost + outputCost).toFixed(6));
+
+  return {
+    inputTokens,
+    outputTokens,
+    totalTokens,
+    estimatedCostUsd,
+    model: modelName,
+  };
+}
+
 /**
  * Mengambil daftar seluruh model yang aktif langsung dari 9Router
  */

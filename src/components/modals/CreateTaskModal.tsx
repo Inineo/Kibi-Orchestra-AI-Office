@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useOfficeStore } from '../../stores/useOfficeStore';
 import { TaskPriority } from '../../types/office';
-import { X, Plus, Sparkles, Layers, Bot, ArrowRight, Loader2 } from 'lucide-react';
+import { estimateTokensAndCost } from '../../lib/aiClient';
+import { X, Plus, Sparkles, Layers, Bot, ArrowRight, Loader2, Coins } from 'lucide-react';
 
 export const CreateTaskModal: React.FC = () => {
   const {
@@ -168,6 +169,25 @@ export const CreateTaskModal: React.FC = () => {
               />
             </div>
 
+            {/* Live Token & Cost Estimator */}
+            {missionGoal.trim().length > 0 && (() => {
+              const estimate = estimateTokensAndCost(missionGoal + ' ' + missionRequirements, 'Architect', 2.5);
+              return (
+                <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-center justify-between text-[11px] font-mono text-zinc-300">
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Estimasi Token & Biaya 9Router:</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-zinc-400">~{estimate.totalTokens} tokens</span>
+                    <span className="text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                      ${estimate.estimatedCostUsd.toFixed(5)} USD
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="pt-3 border-t border-zinc-850 flex items-center justify-between">
               <span className="text-[10px] text-zinc-500">
                 Memanggil model 9Router (Architect / Daily)
@@ -301,6 +321,25 @@ export const CreateTaskModal: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Live Token & Cost Estimator for Single Task */}
+          {title.trim().length > 0 && (() => {
+            const estimate = estimateTokensAndCost(title + ' ' + description, model, 2.0);
+            return (
+              <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-center justify-between text-[11px] font-mono text-zinc-300">
+                <div className="flex items-center gap-2">
+                  <Coins className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Model {model}:</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-zinc-400">~{estimate.totalTokens} tokens</span>
+                  <span className="text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                    ${estimate.estimatedCostUsd.toFixed(5)} USD
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="pt-3 border-t border-zinc-850 flex items-center justify-end gap-2">
             <button

@@ -504,12 +504,13 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       return;
     }
 
-    // --- 2. ADVANCE ACTIVE WORKERS IN REAL TIME ---
+    // --- 2. ADVANCE ACTIVE WORKERS IN PARALLEL (Multi-Agent Concurrent Execution) ---
     if (runningAgents.length > 0) {
-      const luckyAgent = runningAgents[Math.floor(Math.random() * runningAgents.length)];
-      const deltaProgress = Math.floor(Math.random() * 8) + 4;
-      const newProgress = Math.min(100, luckyAgent.progress + deltaProgress);
-      const newTokens = luckyAgent.metrics.tokensGenerated + Math.floor(Math.random() * 260) + 140;
+      // Advance each running agent in parallel
+      for (const luckyAgent of runningAgents) {
+        const deltaProgress = Math.floor(Math.random() * 7) + 5;
+        const newProgress = Math.min(100, luckyAgent.progress + deltaProgress);
+        const newTokens = luckyAgent.metrics.tokensGenerated + Math.floor(Math.random() * 200) + 100;
 
       // Update associated task if exists
       let taskCompleted = false;
@@ -601,7 +602,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
                 });
               }
             }
-            return;
+            continue;
           } else {
             // Update task progress in sync
             set((s) => ({
@@ -754,83 +755,81 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         }
       }
     }
+  }
 
-    // --- 3. AUTONOMOUS DISPATCH: Direct task assignment to the matching Role Agent ---
+    // --- 3. AUTONOMOUS DISPATCH: Direct task assignment to matching Role Agents in Parallel ---
     if (idleAgents.length > 0 && pendingTasks.length > 0) {
-      // Find a pending task that has an exact role match among idle agents
-      let targetTask = pendingTasks.find((t) => {
-        if (t.assignedToAgentId) {
-          return idleAgents.some((a) => a.id === t.assignedToAgentId);
+      let availableIdleAgents = [...idleAgents];
+      const tasksToAssign = [...pendingTasks];
+
+      for (const targetTask of tasksToAssign) {
+        if (availableIdleAgents.length === 0) break;
+
+        let devCandidate: typeof availableIdleAgents[0] | undefined;
+        if (targetTask.assignedToAgentId) {
+          devCandidate = availableIdleAgents.find((a) => a.id === targetTask.assignedToAgentId);
         }
-        // Match by tag or title prefix [FE], [BE], [QA], [Intern]
-        return idleAgents.some((a) => 
-          (t.tags && t.tags.some(tag => tag.toLowerCase() === a.role.toLowerCase())) ||
-          (t.title.toLowerCase().includes(`[${a.role.toLowerCase()}]`))
-        );
-      }) || pendingTasks[0];
+        if (!devCandidate) {
+          // Find matching role based on tags or title
+          devCandidate = availableIdleAgents.find((a) =>
+            (targetTask.tags && targetTask.tags.some((tag) => tag.toLowerCase() === a.role.toLowerCase())) ||
+            targetTask.title.toLowerCase().includes(`[${a.role.toLowerCase()}]`)
+          );
+        }
+        if (!devCandidate) {
+          // Fallback to suitable role if no direct match
+          devCandidate = availableIdleAgents.find(
+            (a) => a.role === 'researcher' || a.role === 'frontend' || a.role === 'backend' || a.role === 'qa' || a.role === 'intern'
+          );
+        }
 
-      let devCandidate: typeof idleAgents[0] | undefined;
-      if (targetTask.assignedToAgentId) {
-        devCandidate = idleAgents.find((a) => a.id === targetTask.assignedToAgentId);
+        if (devCandidate) {
+          const candidateId = devCandidate.id;
+          availableIdleAgents = availableIdleAgents.filter((a) => a.id !== candidateId);
+
+          get().updateAgent(candidateId, {
+            status:
+              devCandidate.role === 'researcher'
+                ? 'reviewing'
+                : devCandidate.role === 'qa' || devCandidate.role === 'tester'
+                ? 'testing'
+                : devCandidate.role === 'reviewer'
+                ? 'reviewing'
+                : 'coding',
+            idleActivity: 'standby',
+            locationState: 'at_desk',
+            currentTask: targetTask.title,
+            currentTaskId: targetTask.id,
+            progress: 8,
+            elapsedTime: 1,
+            currentThought: `Kembali ke meja kerja: Memulai ${targetTask.key} (${targetTask.title})...`,
+            currentAction: `Menulis kode untuk ${targetTask.title} di meja kerja`,
+          });
+
+          set((s) => ({
+            tasks: s.tasks.map((t) =>
+              t.id === targetTask.id
+                ? {
+                    ...t,
+                    status: 'running',
+                    assignedToAgentId: candidateId,
+                    startTime: Date.now(),
+                    progress: 8,
+                  }
+                : t
+            ),
+          }));
+
+          state.addEvent({
+            type: 'start',
+            message: `▶ ${targetTask.key} ditugaskan ke ${devCandidate.name} (kembali ke meja kerja)`,
+            agentId: candidateId,
+            taskId: targetTask.id,
+            taskKey: targetTask.key,
+          });
+          if (state.soundEnabled) playSound('blip');
+        }
       }
-      if (!devCandidate) {
-        // Find matching role based on tags or title
-        devCandidate = idleAgents.find((a) => 
-          (targetTask.tags && targetTask.tags.some(tag => tag.toLowerCase() === a.role.toLowerCase())) ||
-          (targetTask.title.toLowerCase().includes(`[${a.role.toLowerCase()}]`))
-        );
-      }
-      if (!devCandidate) {
-        // Fallback to suitable role if no direct match
-        devCandidate = idleAgents.find(
-          (a) => a.role === 'researcher' || a.role === 'frontend' || a.role === 'backend' || a.role === 'qa' || a.role === 'intern'
-        ) || idleAgents[0];
-      }
-
-      const nextTask = targetTask;
-
-      get().updateAgent(devCandidate.id, {
-        status:
-          devCandidate.role === 'researcher'
-            ? 'reviewing'
-            : devCandidate.role === 'qa' || devCandidate.role === 'tester'
-            ? 'testing'
-            : devCandidate.role === 'reviewer'
-            ? 'reviewing'
-            : 'coding',
-        idleActivity: 'standby',
-        locationState: 'at_desk',
-        currentTask: nextTask.title,
-        currentTaskId: nextTask.id,
-        progress: 8,
-        elapsedTime: 1,
-        currentThought: `Kembali ke meja kerja: Memulai ${nextTask.key} (${nextTask.title})...`,
-        currentAction: `Menulis kode untuk ${nextTask.title} di meja kerja`,
-      });
-
-      set((s) => ({
-        tasks: s.tasks.map((t) =>
-          t.id === nextTask.id
-            ? {
-                ...t,
-                status: 'running',
-                assignedToAgentId: devCandidate.id,
-                startTime: Date.now(),
-                progress: 8,
-              }
-            : t
-        ),
-      }));
-
-      state.addEvent({
-        type: 'start',
-        message: `▶ ${nextTask.key} ditugaskan ke ${devCandidate.name} (kembali ke meja kerja)`,
-        agentId: devCandidate.id,
-        taskId: nextTask.id,
-        taskKey: nextTask.key,
-      });
-      if (state.soundEnabled) playSound('blip');
-      return;
     }
 
     // --- 4. REVIEW TASK COMPLETION ---
