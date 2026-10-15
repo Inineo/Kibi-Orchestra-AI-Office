@@ -27,6 +27,12 @@ app.add_middleware(
 obsidian_service = ObsidianService()
 orchestrator = WorkflowOrchestrator()
 
+@app.on_event("startup")
+def startup_db():
+    """Pastikan tabel DB terbuat saat server start."""
+    from services.database import Database
+    Database.init_db()
+
 # --- Request / Response Models ---
 class DecomposeRequest(BaseModel):
     goal: str
@@ -240,6 +246,137 @@ def create_or_update_note(req: SaveNoteRequest):
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(req.content)
     return {"success": True, "saved_path": str(file_path)}
+
+# ========== Phase 3: Memory & Context Persistence ==========
+
+# --- Missions & Tasks Listing ---
+
+@app.get("/api/missions")
+def list_missions_api(status: Optional[str] = None, limit: int = 50):
+    """Daftar semua misi, opsional filter by status."""
+    from services.database import Database
+    missions = Database.list_missions(status=status, limit=limit)
+    return {"success": True, "total": len(missions), "missions": missions}
+
+@app.get("/api/missions/{mission_id}")
+def get_mission_api(mission_id: str):
+    """Detail satu misi beserta subtasks-nya."""
+    from services.database import Database
+    mission = Database.get_mission(mission_id)
+    if not mission:
+        raise HTTPException(status_code=404, detail="Mission not found")
+    return {"success": True, "mission": mission}
+
+@app.get("/api/tasks")
+def list_tasks_api(mission_id: Optional[str] = None, status: Optional[str] = None, limit: int = 100):
+    """Daftar tasks, opsional filter by mission_id dan/atau status."""
+    from services.database import Database
+    tasks = Database.list_tasks(mission_id=mission_id, status=status, limit=limit)
+    return {"success": True, "total": len(tasks), "tasks": tasks}
+
+# --- Agents Registry ---
+
+class UpsertAgentRequest(BaseModel):
+    id: str
+    name: str
+    role: str
+    title: Optional[str] = ""
+    department: Optional[str] = "orchestra"
+
+@app.post("/api/agents")
+def upsert_agent_api(req: UpsertAgentRequest):
+    """Register atau update agent ke database."""
+    from services.database import Database
+    agent = Database.upsert_agent(req.id, req.name, req.role, req.title or "", req.department or "orchestra")
+    return {"success": True, "agent": agent}
+
+@app.get("/api/agents")
+def list_agents_api():
+    """Daftar semua agent yang terdaftar."""
+    from services.database import Database
+    agents = Database.list_agents()
+    return {"success": True, "total": len(agents), "agents": agents}
+
+# --- Task Artifacts & Agent Memory Retrieval ---
+
+class SaveArtifactRequest(BaseModel):
+    task_id: str
+    type: Optional[str] = "markdown"
+    url: Optional[str] = ""
+    summary: str
+    description: Optional[str] = ""
+
+@app.post("/api/artifacts")
+def save_artifact_api(req: SaveArtifactRequest):
+    """Simpan ringkasan artefak task ke database untuk memory retrieval."""
+    import uuid
+    from services.database import Database
+    artifact_id = str(uuid.uuid4())[:8]
+    artifact = Database.save_artifact(
+        artifact_id=artifact_id,
+        task_id=req.task_id,
+        artifact_type=req.type or "markdown",
+        url=req.url or "",
+        summary=req.summary,
+        description=req.description or ""
+    )
+    return {"success": True, "artifact": artifact}
+
+@app.get("/api/artifacts/task/{task_id}")
+def get_task_artifacts_api(task_id: str):
+    """Artefak dari satu task."""
+    from services.database import Database
+    artifacts = Database.get_artifacts_by_task(task_id)
+    return {"success": True, "total": len(artifacts), "artifacts": artifacts}
+
+@app.get("/api/artifacts/mission/{mission_id}")
+def get_mission_artifacts_api(mission_id: str):
+    """Semua artefak dari semua task dalam satu misi."""
+    from services.database import Database
+    artifacts = Database.get_artifacts_by_mission(mission_id)
+    return {"success": True, "total": len(artifacts), "artifacts": artifacts}
+
+@app.get("/api/agents/{agent_id}/memory")
+def get_agent_memory_api(agent_id: str, limit: int = 20):
+    """
+    Agent Memory Retrieval: Riwayat task + artefak yang pernah dikerjakan agent.
+    Digunakan agar agent mengingat pengerjaan sebelumnya tanpa re-indexing penuh.
+    """
+    from services.database import Database
+    history = Database.get_agent_history(agent_id, limit=limit)
+    return {"success": True, "agent_id": agent_id, "total": len(history), "history": history}
+
+class CompleteTaskRequest(BaseModel):
+    task_id: str
+    result_summary: str
+    artifact_type: Optional[str] = "markdown"
+    artifact_url: Optional[str] = ""
+
+@app.post("/api/tasks/{task_id}/complete")
+def complete_task_api(task_id: str, req: CompleteTaskRequest):
+    """
+    Tandai task selesai dan otomatis simpan artefak ringkasan ke DB.
+    Agent tidak perlu call 2 endpoint terpisah.
+    """
+    import uuid
+    from services.database import Database
+    Database.update_task_status(task_id, "completed")
+    artifact = Database.save_artifact(
+        artifact_id=str(uuid.uuid4())[:8],
+        task_id=task_id,
+        artifact_type=req.artifact_type or "markdown",
+        url=req.artifact_url or "",
+        summary=req.result_summary,
+        description=""
+    )
+    return {"success": True, "task_id": task_id, "status": "completed", "artifact": artifact}
+
+@app.patch("/api/tasks/{task_id}/status")
+def update_task_status_api(task_id: str, status: str = "in_progress"):
+    """Update status task (pending, assigned, in_progress, completed, blocked)."""
+    from services.database import Database
+    Database.update_task_status(task_id, status)
+    return {"success": True, "task_id": task_id, "status": status}
 
 if __name__ == "__main__":
     import uvicorn

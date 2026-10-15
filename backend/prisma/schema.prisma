@@ -81,9 +81,10 @@ model TaskArtifact {
   id          String    @id @default(cuid())
   taskId      String
   task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
+
   type        String    // markdown, screenshot, video, log
-  url         String    // file path or URL
+  url         String?   // file path or URL
+  summary     String    // ringkasan artefak untuk memory retrieval
   description String?
   createdAt   DateTime  @default(now())
 }
