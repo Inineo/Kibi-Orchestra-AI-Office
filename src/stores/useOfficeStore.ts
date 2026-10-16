@@ -394,9 +394,8 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         model: pmAgent?.model || 'Architect',
       });
 
-      // 3. Masukkan sub-task ke Kanban & Store
+      // 3. Masukkan sub-task ke Kanban & Store. Sub-task tidak dibuat sebagai GitHub Issue.
       result.tasks.forEach((t, idx) => {
-        // Cari agen yang cocok dengan role task
         const matchedAgent = agents.find((a) => a.role === t.role);
 
         addTask({
@@ -413,32 +412,32 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
             { id: `st-${idx}-3`, text: 'Validasi testing & code review', completed: false },
           ],
         });
-
-        // 3B. Otomatis daftarkan task ke GitHub Issues (dengan Security Gate & Rich Metadata)
-        fetch('/api/backend/intern/github-issue', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: t.title,
-            body: `### Deskripsi Tugas\n${t.description}\n\n- **Role Assigned**: \`${t.role}\`\n- **Priority**: \`${t.priority}\`\n- **Status**: Pending Execution`,
-            role: t.role,
-            assignees: ['Inineo'],
-          }),
-        })
-          .then((r) => r.json())
-          .then((res) => {
-            if (res.issue_url) {
-              addEvent({
-                type: 'artifact',
-                message: `🐙 Mendaftarkan issue GitHub: "${t.title}"`,
-                details: res.issue_url,
-              });
-            } else if (res.is_sensitive) {
-              console.log('Task disaring oleh Security Gate (Private):', t.title);
-            }
-          })
-          .catch(() => {});
       });
+
+      // Satu issue merepresentasikan permintaan awal; rincian pekerjaan tetap berada di Kanban.
+      fetch('/api/backend/intern/github-issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: goal.trim(),
+          body: `## Tujuan\n${goal.trim()}\n\n## Ringkasan\n${result.epicSummary.trim()}${requirements?.trim() ? `\n\n## Persyaratan\n${requirements.trim()}` : ''}`,
+          role: 'enhancement',
+          assignees: ['Inineo'],
+        }),
+      })
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.issue_url) {
+            addEvent({
+              type: 'artifact',
+              message: `🐙 Membuat issue GitHub untuk mission: "${goal}"`,
+              details: res.issue_url,
+            });
+          } else if (res.is_sensitive) {
+            console.log('Mission disaring oleh Security Gate (Private):', goal);
+          }
+        })
+        .catch(() => {});
 
       // 4. Update PM kembali ke idle / monitoring
       if (pmAgent) {
