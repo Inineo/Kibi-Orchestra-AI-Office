@@ -36,14 +36,14 @@ class StrixQAService:
         env = os.environ.copy()
         env["STRIX_LLM"] = strix_model
         env["OPENAI_API_BASE"] = f"{self.ninerouter_url}/v1"
-        env["OPENAI_API_KEY"] = env.get("VITE_9ROUTER_API_KEY", "dummy-key-for-local-9router")
+        env["OPENAI_API_KEY"] = env.get("VITE_9ROUTER_API_KEY", "REMOVED_9ROUTER_KEY")
 
         findings: List[Dict[str, Any]] = []
 
         try:
-            # Jalankan strix scan dengan output JSON
+            # Jalankan strix scan CLI dengan target terisolasi
             cmd = [
-                sys.executable, "-m", "strix",
+                "strix",
                 "--target", scan_target,
                 "--non-interactive"
             ]
@@ -54,7 +54,8 @@ class StrixQAService:
                 env=env,
                 capture_output=True,
                 text=True,
-                timeout=timeout
+                timeout=timeout,
+                shell=True
             )
 
             stdout = res.stdout.strip()

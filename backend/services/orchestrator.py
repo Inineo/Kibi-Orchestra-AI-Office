@@ -12,7 +12,7 @@ class WorkflowOrchestrator:
 
     def __init__(self):
         self.router_url = NINEROUTER_URL
-        self.api_key = NINEROUTER_API_KEY
+        self.api_key = NINEROUTER_API_KEY or "REMOVED_9ROUTER_KEY"
 
     def call_ai(self, model: str, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
         url = f"{self.router_url}/v1/chat/completions"
@@ -22,18 +22,47 @@ class WorkflowOrchestrator:
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
+        # 9Router combo fallback: jika model alias seperti Architect / Daily tidak terdaftar, pakai Gemini-8_Low
+        target_model = model or DEFAULT_MODEL
+        if target_model in ["Architect", "Daily", "Coding_Specialist", "Fast", "Reviewer"]:
+            target_model = "Gemini-8_Low"
+
         payload = {
-            "model": model or DEFAULT_MODEL,
+            "model": target_model,
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": 1500
+            "max_tokens": 1500,
+            "stream": False
         }
 
         try:
             resp = requests.post(url, headers=headers, json=payload, timeout=60)
             if resp.status_code == 200:
-                data = resp.json()
-                return data["choices"][0]["message"]["content"]
+                text = resp.text.strip()
+                # Jika response dikembalikan dalam format SSE streaming (data: {...})
+                if text.startswith("data:"):
+                    chunks = []
+                    for line in text.split("\n"):
+                        line = line.strip()
+                        if line.startswith("data:") and not "[DONE]" in line:
+                            json_str = line[5:].strip()
+                            if json_str:
+                                try:
+                                    chunk_data = json.loads(json_str)
+                                    delta = chunk_data.get("choices", [{}])[0].get("delta", {})
+                                    if "content" in delta:
+                                        chunks.append(delta["content"])
+                                except Exception:
+                                    pass
+                    if chunks:
+                        return "".join(chunks)
+                
+                # Normal JSON response
+                try:
+                    data = resp.json()
+                    return data["choices"][0]["message"]["content"]
+                except Exception:
+                    return text
             else:
                 return f"[Error 9Router: {resp.status_code}] {resp.text}"
         except Exception as e:

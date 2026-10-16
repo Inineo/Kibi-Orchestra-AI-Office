@@ -23,6 +23,22 @@ export default defineConfig(() => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/backend/, '/api'),
         },
+        '/api/missions': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+        '/api/qa': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+        '/api/intern': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+        '/api/obsidian': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
         '/api/9router': {
           target: 'http://127.0.0.1:20128',
           changeOrigin: true,
