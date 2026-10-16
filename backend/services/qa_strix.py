@@ -36,7 +36,16 @@ class StrixQAService:
         env = os.environ.copy()
         env["STRIX_LLM"] = strix_model
         env["OPENAI_API_BASE"] = f"{self.ninerouter_url}/v1"
-        env["OPENAI_API_KEY"] = env.get("VITE_9ROUTER_API_KEY", "REMOVED_9ROUTER_KEY")
+        api_key = env.get("VITE_9ROUTER_API_KEY", "").strip()
+        if not api_key:
+            return {
+                "success": False,
+                "model_used": strix_model,
+                "target": scan_target,
+                "error": "VITE_9ROUTER_API_KEY is required. Copy .env.example to .env and set the key.",
+                "summary": "Strix scan tidak dijalankan karena 9Router API key belum dikonfigurasi."
+            }
+        env["OPENAI_API_KEY"] = api_key
 
         findings: List[Dict[str, Any]] = []
 

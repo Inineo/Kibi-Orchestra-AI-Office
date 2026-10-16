@@ -1,28 +1,8 @@
 import json
-import os
-import sqlite3
 import requests
 from typing import Dict, Any, List, Optional
 from config import NINEROUTER_URL, NINEROUTER_API_KEY, DEFAULT_MODEL
 from services.caveman import CavemanCompressor
-
-_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "orchestrator.db")
-_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "..", "schema.sql")
-
-
-def init_database() -> None:
-    """Auto-create orchestrator.db from schema.sql if it doesn't exist."""
-    if os.path.exists(_DB_PATH):
-        return
-    if not os.path.exists(_SCHEMA_PATH):
-        # Fallback: schema.sql missing, skip (database.py init_db will cover it)
-        return
-    with open(_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        schema_sql = f.read()
-    with sqlite3.connect(_DB_PATH) as conn:
-        conn.executescript(schema_sql)
-        conn.commit()
-    print(f"[Orchestrator] Database initialized at: {os.path.abspath(_DB_PATH)}")
 
 
 class WorkflowOrchestrator:
@@ -34,15 +14,16 @@ class WorkflowOrchestrator:
     def __init__(self):
         self.router_url = NINEROUTER_URL
         self.api_key = NINEROUTER_API_KEY
-        init_database() or "REMOVED_9ROUTER_KEY"
 
     def call_ai(self, model: str, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+        if not self.api_key:
+            return "[Configuration Error] VITE_9ROUTER_API_KEY is required. Copy .env.example to .env and set the key."
+
         url = f"{self.router_url}/v1/chat/completions"
         headers = {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
         }
-        if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
 
         # 9Router combo fallback: jika model alias seperti Architect / Daily tidak terdaftar, pakai Gemini-8_Low
         target_model = model or DEFAULT_MODEL
