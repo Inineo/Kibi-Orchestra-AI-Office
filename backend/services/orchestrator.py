@@ -1,8 +1,29 @@
 import json
+import os
+import sqlite3
 import requests
 from typing import Dict, Any, List, Optional
 from config import NINEROUTER_URL, NINEROUTER_API_KEY, DEFAULT_MODEL
 from services.caveman import CavemanCompressor
+
+_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "orchestrator.db")
+_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "..", "schema.sql")
+
+
+def init_database() -> None:
+    """Auto-create orchestrator.db from schema.sql if it doesn't exist."""
+    if os.path.exists(_DB_PATH):
+        return
+    if not os.path.exists(_SCHEMA_PATH):
+        # Fallback: schema.sql missing, skip (database.py init_db will cover it)
+        return
+    with open(_SCHEMA_PATH, "r", encoding="utf-8") as f:
+        schema_sql = f.read()
+    with sqlite3.connect(_DB_PATH) as conn:
+        conn.executescript(schema_sql)
+        conn.commit()
+    print(f"[Orchestrator] Database initialized at: {os.path.abspath(_DB_PATH)}")
+
 
 class WorkflowOrchestrator:
     """
@@ -12,7 +33,8 @@ class WorkflowOrchestrator:
 
     def __init__(self):
         self.router_url = NINEROUTER_URL
-        self.api_key = NINEROUTER_API_KEY or "REMOVED_9ROUTER_KEY"
+        self.api_key = NINEROUTER_API_KEY
+        init_database() or "REMOVED_9ROUTER_KEY"
 
     def call_ai(self, model: str, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
         url = f"{self.router_url}/v1/chat/completions"

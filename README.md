@@ -184,12 +184,14 @@ npm run dev
 ```
 Open http://localhost:5173
 
-**Backend:**
+**Backend** (database auto-initializes on first run):
 ```bash
 cd backend
 python main.py
 ```
 Backend runs on http://localhost:8000
+
+> 💾 **Database**: `orchestrator.db` is created automatically in `backend/` when the server starts for the first time. No manual setup required. It is excluded from git via `.gitignore`.
 
 ---
 
