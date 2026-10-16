@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOfficeStore } from '../../stores/useOfficeStore';
 import { TaskPriority } from '../../types/office';
 import { estimateTokensAndCost } from '../../lib/aiClient';
-import { X, Plus, Sparkles, Layers, Bot, ArrowRight, Loader2, Coins } from 'lucide-react';
+import {
+  DEFAULT_WORKFLOW_TEMPLATES,
+  WorkflowTemplate,
+} from '../../data/workflowTemplates';
+import { X, Plus, Sparkles, Layers, Bot, ArrowRight, Loader2, Coins, Bookmark } from 'lucide-react';
+
+const STORAGE_KEY_CUSTOM_TEMPLATES = 'kibi_custom_workflow_templates';
 
 export const CreateTaskModal: React.FC = () => {
   const {
@@ -13,7 +19,7 @@ export const CreateTaskModal: React.FC = () => {
     agents,
   } = useOfficeStore();
 
-  const [mode, setMode] = useState<'single' | 'pm_decompose'>('pm_decompose');
+  const [mode, setMode] = useState<'pm_decompose' | 'single'>('pm_decompose');
 
   // Single task state
   const [title, setTitle] = useState('');
@@ -27,6 +33,71 @@ export const CreateTaskModal: React.FC = () => {
   const [missionGoal, setMissionGoal] = useState('');
   const [missionRequirements, setMissionRequirements] = useState('');
   const [isDecomposing, setIsDecomposing] = useState(false);
+
+  // Template state
+  const [customTemplates, setCustomTemplates] = useState<WorkflowTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CUSTOM_TEMPLATES);
+      if (stored) {
+        setCustomTemplates(JSON.parse(stored));
+      }
+    } catch {
+      // Ignore localStorage parse error
+    }
+  }, []);
+
+  const allTemplates = [...DEFAULT_WORKFLOW_TEMPLATES, ...customTemplates];
+
+  const applyTemplate = (tpl: WorkflowTemplate) => {
+    setSelectedTemplateId(tpl.id);
+    if (tpl.targetMode === 'pm_decompose') {
+      setMode('pm_decompose');
+      if (tpl.missionGoal) setMissionGoal(tpl.missionGoal);
+      if (tpl.missionRequirements) setMissionRequirements(tpl.missionRequirements);
+    } else {
+      setMode('single');
+      if (tpl.taskTitle) setTitle(tpl.taskTitle);
+      if (tpl.taskDescription) setDescription(tpl.taskDescription);
+      if (tpl.taskPriority) setPriority(tpl.taskPriority);
+      if (tpl.taskTags) setTagsInput(tpl.taskTags.join(', '));
+      if (tpl.recommendedModel) setModel(tpl.recommendedModel);
+    }
+  };
+
+  const handleSaveCurrentAsTemplate = () => {
+    const isPm = mode === 'pm_decompose';
+    const name = isPm
+      ? missionGoal.slice(0, 24).trim() || 'Custom Mission'
+      : title.slice(0, 24).trim() || 'Custom Task';
+
+    const newTpl: WorkflowTemplate = {
+      id: 'custom-' + Date.now(),
+      name,
+      badge: '⭐ Custom',
+      category: 'custom',
+      description: isPm ? missionGoal : (description || title),
+      targetMode: mode,
+      missionGoal: isPm ? missionGoal : undefined,
+      missionRequirements: isPm ? missionRequirements : undefined,
+      taskTitle: !isPm ? title : undefined,
+      taskDescription: !isPm ? description : undefined,
+      taskPriority: !isPm ? priority : undefined,
+      taskTags: !isPm ? tagsInput.split(',').map((t) => t.trim()).filter(Boolean) : undefined,
+      recommendedModel: model,
+    };
+
+    const updated = [newTpl, ...customTemplates];
+    setCustomTemplates(updated);
+    setSelectedTemplateId(newTpl.id);
+    try {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_TEMPLATES, JSON.stringify(updated));
+    } catch {
+      // Storage unavailable
+    }
+  };
 
   if (!isCreateTaskModalOpen) return null;
 
@@ -94,6 +165,46 @@ export const CreateTaskModal: React.FC = () => {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Workflow Template Quick Bar */}
+        <div className="border-b border-zinc-800 bg-zinc-950/70 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] uppercase font-bold text-zinc-400 flex items-center gap-1.5">
+              <span>⚡ WORKFLOW TEMPLATES (1-CLICK)</span>
+            </span>
+            {((mode === 'pm_decompose' && missionGoal.trim()) || (mode === 'single' && title.trim())) && (
+              <button
+                type="button"
+                onClick={handleSaveCurrentAsTemplate}
+                className="text-[10px] text-zinc-400 hover:text-emerald-400 flex items-center gap-1 transition cursor-pointer"
+              >
+                <Bookmark className="w-3 h-3" />
+                <span>Simpan Template</span>
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {allTemplates.map((tpl) => {
+              const isSelected = selectedTemplateId === tpl.id;
+              return (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => applyTemplate(tpl)}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition flex items-center gap-1.5 border cursor-pointer ${
+                    isSelected
+                      ? 'bg-zinc-100 text-zinc-950 border-white font-bold shadow-sm'
+                      : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:border-zinc-600 hover:text-white'
+                  }`}
+                  title={tpl.description}
+                >
+                  <span>{tpl.badge}</span>
+                  <span>{tpl.name}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mode Switcher Tabs */}
