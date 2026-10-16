@@ -8,6 +8,8 @@ from config import OBSIDIAN_VAULT_PATH, NINEROUTER_URL
 from services.obsidian import ObsidianService
 from services.caveman import CavemanCompressor
 from services.orchestrator import WorkflowOrchestrator
+from services.intern_safety import InternGitSafetyService
+from pathlib import Path
 
 app = FastAPI(
     title="TUYUL Orchestra — Task Unified Yield & Utility Layer",
@@ -91,7 +93,13 @@ def decompose_mission_api(req: DecomposeRequest):
     import uuid
     mission_id = str(uuid.uuid4())[:8]
 
-    # 1. Simpan ke SQLite Database
+    # 1. Intern mengisolasi seluruh pekerjaan mission dari main sebelum agent mulai bekerja.
+    intern_service = InternGitSafetyService(Path(__file__).resolve().parent.parent)
+    branch_result = intern_service.start_mission_branch(mission_id)
+    if not branch_result["success"]:
+        raise HTTPException(status_code=409, detail=branch_result["message"])
+
+    # 2. Simpan ke SQLite Database
     from services.database import Database
     Database.create_mission(
         mission_id=mission_id,
@@ -124,10 +132,37 @@ def decompose_mission_api(req: DecomposeRequest):
     return {
         "success": True,
         "mission_id": mission_id,
+        "branch": branch_result["branch"],
         "plan": result.get("plan", ""),
         "tasks": result.get("tasks", []),
         "obsidian_file": saved_file
     }
+
+class MissionCommitRequest(BaseModel):
+    summary: str
+
+class MissionMergeRequest(BaseModel):
+    confirmation: str
+
+@app.post("/api/intern/missions/{mission_id}/commit-and-push")
+def commit_and_push_mission_api(mission_id: str, req: MissionCommitRequest):
+    """Intern otomatis commit dan push hanya ke branch mission, bukan main."""
+    intern_service = InternGitSafetyService(Path(__file__).resolve().parent.parent)
+    result = intern_service.commit_and_push_mission(mission_id, req.summary)
+    if not result["success"]:
+        raise HTTPException(status_code=409, detail=result["message"])
+    return result
+
+@app.post("/api/intern/missions/{mission_id}/merge-to-main")
+def merge_mission_to_main_api(mission_id: str, req: MissionMergeRequest):
+    """Aksi eksplisit dari Antigravity untuk mempromosikan branch mission ke main."""
+    if req.confirmation.strip().lower() != "merge to main":
+        raise HTTPException(status_code=400, detail="Confirmation must be exactly: merge to main")
+    intern_service = InternGitSafetyService(Path(__file__).resolve().parent.parent)
+    result = intern_service.merge_mission_to_main(mission_id)
+    if not result["success"]:
+        raise HTTPException(status_code=409, detail=result["message"])
+    return result
 
 class PMReviewRequest(BaseModel):
     goal: str
@@ -148,6 +183,7 @@ def review_mission_api(req: PMReviewRequest):
         model=req.model
     )
     
+    git_result = None
     # Simpan review ke SQLite
     if req.mission_id:
         import uuid
@@ -166,10 +202,13 @@ def review_mission_api(req: PMReviewRequest):
         # 🧹 Hapus file plan markdown jika misi SUDAH APPROVED agar file tidak menumpuk di Obsidian
         if review_result.get("verdict") == "APPROVED":
             obsidian_service.delete_mission_plan(req.mission_id)
+            intern_service = InternGitSafetyService(Path(__file__).resolve().parent.parent)
+            git_result = intern_service.commit_and_push_mission(req.mission_id, req.goal)
 
     return {
         "success": True,
-        "review": review_result
+        "review": review_result,
+        "git": git_result
     }
 
 class CreateIssueRequest(BaseModel):
