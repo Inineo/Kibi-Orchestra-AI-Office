@@ -61,23 +61,23 @@ export const AgentDetailModal: React.FC = () => {
   const statusBadge = getStatusBadge();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150 font-sans">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col font-mono">
-        {/* Header - Minimalist */}
-        <div className="p-4 flex items-center justify-between border-b border-zinc-850 bg-black">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150 font-mono">
+      <div className="bg-zinc-950 border border-zinc-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col font-mono text-xs">
+        {/* Header */}
+        <div className="px-5 py-4 flex items-center justify-between border-b border-zinc-800 bg-zinc-950">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white font-bold font-mono text-base shadow-inner">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200 font-bold font-mono text-sm shadow-sm shrink-0">
               {agent.name.charAt(0)}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white font-mono">{agent.name}</h3>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${statusBadge.badge}`}>
+                <h3 className="font-semibold text-xs tracking-wide text-zinc-100 uppercase">{agent.name}</h3>
+                <span className="rounded px-1.5 py-0.5 font-mono text-[9px] uppercase border border-zinc-700 bg-zinc-900 text-zinc-300">
                   {statusBadge.label}
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 font-mono">
-                {agent.title} • <span className="text-zinc-200 font-semibold">{agent.model}</span>
+              <p className="mt-0.5 text-[11px] text-zinc-400 font-mono truncate max-w-[180px]">
+                {agent.title} • <span className="text-zinc-300">{agent.model}</span>
               </p>
             </div>
           </div>
@@ -88,14 +88,14 @@ export const AgentDetailModal: React.FC = () => {
                 focusAgent(agent.id);
                 selectAgent(null);
               }}
-              className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 rounded-lg text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
+              className="h-7 px-2.5 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-[11px] font-mono transition flex items-center gap-1.5 cursor-pointer"
               title="Fokus kamera 3D ke posisi agen"
             >
               <Compass className="w-3.5 h-3.5 text-zinc-300" /> Fokus 3D
             </button>
             <button
               onClick={() => selectAgent(null)}
-              className="p-1.5 hover:bg-zinc-850 text-zinc-400 hover:text-white rounded-lg transition cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -105,10 +105,12 @@ export const AgentDetailModal: React.FC = () => {
         {/* Simplified Body */}
         <div className="p-5 space-y-4 text-xs font-mono">
           {/* 1. Quick Config: Nama & Model API */}
-          <div className="bg-zinc-900/40 border border-zinc-850 rounded-xl p-3.5 space-y-3">
+          <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-3.5 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase text-zinc-400 font-bold">Nama AI:</label>
+              <div>
+                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                  Nama AI
+                </label>
                 <input
                   type="text"
                   defaultValue={agent.name}
@@ -126,13 +128,15 @@ export const AgentDetailModal: React.FC = () => {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') e.currentTarget.blur();
                   }}
-                  className="w-full bg-black border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-500 font-mono"
+                  className="h-8 w-full rounded-md border border-zinc-700 bg-zinc-900 px-2.5 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
                   placeholder="Nama AI..."
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase text-zinc-400 font-bold">Model API LLM:</label>
+              <div>
+                <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                  Model API LLM
+                </label>
                 <select
                   value={agent.model}
                   onChange={(e) => {
@@ -144,7 +148,7 @@ export const AgentDetailModal: React.FC = () => {
                       agentId: agent.id,
                     });
                   }}
-                  className="w-full bg-black border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-zinc-500 font-mono cursor-pointer"
+                  className="h-8 w-full rounded-md border border-zinc-700 bg-zinc-900 px-2 font-mono text-xs text-zinc-300 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 cursor-pointer"
                 >
                   <optgroup label="Router Aliases (Direkomendasikan)">
                     <option value="Daily">Daily (Fast & Smart)</option>
@@ -169,51 +173,51 @@ export const AgentDetailModal: React.FC = () => {
           </div>
 
           {/* 2. Tugas Aktif & Pikiran Otomatis */}
-          <div className="bg-zinc-900/40 border border-zinc-850 rounded-xl p-3.5 space-y-2">
-            <div className="text-[10px] uppercase text-zinc-400 flex items-center justify-between font-bold">
+          <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-3.5 space-y-2">
+            <div className="text-[10px] uppercase text-zinc-400 flex items-center justify-between font-medium tracking-wide">
               <span className="flex items-center gap-1.5">
                 <Brain className="w-3.5 h-3.5 text-zinc-300" /> PIKIRAN & PEKERJAAN SAAT INI
               </span>
               {agent.currentTask && (
-                <span className="text-[9px] text-emerald-400">
+                <span className="text-[10px] font-mono text-zinc-300 font-semibold">
                   {agent.progress}%
                 </span>
               )}
             </div>
 
-            <div className="text-zinc-200 italic bg-black p-3 rounded-lg border border-zinc-850 text-xs">
+            <div className="text-zinc-200 italic bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 text-xs">
               "{agent.currentThought}"
             </div>
 
             <div className="text-zinc-400 text-[11px] pt-1 leading-relaxed">
-              <span className="text-zinc-500 font-bold">Aksi: </span>
+              <span className="text-zinc-500 font-medium">Aksi: </span>
               <span className="text-zinc-200">{agent.currentAction}</span>
             </div>
           </div>
 
           {/* 3. Metrik Performa Real-Time */}
           <div className="grid grid-cols-4 gap-2 pt-1">
-            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-2 rounded-lg text-center">
               <div className="text-[9px] text-zinc-500 uppercase font-mono">SELESAI</div>
-              <div className="text-sm font-bold text-white mt-0.5">
+              <div className="text-xs font-semibold text-zinc-100 mt-0.5">
                 {agent.metrics.tasksCompleted}
               </div>
             </div>
-            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-2 rounded-lg text-center">
               <div className="text-[9px] text-zinc-500 uppercase font-mono">TOKENS</div>
-              <div className="text-sm font-bold text-white mt-0.5">
+              <div className="text-xs font-semibold text-zinc-100 mt-0.5">
                 {(agent.metrics.tokensGenerated / 1000).toFixed(0)}k
               </div>
             </div>
-            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-2 rounded-lg text-center">
               <div className="text-[9px] text-zinc-500 uppercase font-mono">SPEED</div>
-              <div className="text-sm font-bold text-white mt-0.5">
-                {agent.metrics.speedTokensSec} <span className="text-[9px] text-zinc-500">t/s</span>
+              <div className="text-xs font-semibold text-zinc-100 mt-0.5">
+                {agent.metrics.speedTokensSec} <span className="text-[9px] text-zinc-500 font-normal">t/s</span>
               </div>
             </div>
-            <div className="bg-black border border-zinc-850 p-2 rounded-lg text-center">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-2 rounded-lg text-center">
               <div className="text-[9px] text-zinc-500 uppercase font-mono">AKURASI</div>
-              <div className="text-sm font-bold text-emerald-400 mt-0.5">
+              <div className="text-xs font-semibold text-zinc-100 mt-0.5">
                 {agent.metrics.accuracyScore}%
               </div>
             </div>

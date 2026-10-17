@@ -31,45 +31,49 @@ export const SimpleActivityFeed: React.FC = () => {
   });
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4 font-sans">
-      {/* Header - Monochrome Minimalist */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-950 p-4 rounded-xl border border-zinc-850">
-        <div>
-          <h2 className="text-sm font-bold text-white uppercase font-mono tracking-wider flex items-center gap-2">
-            LOG AKTIVITAS KERJA • LIVE AUDIT STREAM
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5 font-mono">
-            Riwayat kejadian dan interaksi antar agen AI secara real-time.
-          </p>
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4 font-mono text-xs">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200 shrink-0">
+            <Radio className="w-4 h-4 text-zinc-300" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-xs tracking-wide text-zinc-100 uppercase">
+              Log Aktivitas Kerja • Live Audit Stream
+            </h2>
+            <p className="mt-0.5 font-mono text-[11px] text-zinc-400">
+              Riwayat kejadian dan interaksi antar agen AI secara real-time.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Filters */}
-          <div className="flex items-center bg-black p-1 rounded-lg border border-zinc-850 text-xs font-mono">
-            {['all', 'start', 'complete', 'escalation'].map((key) => (
+          {/* Segmented Filter Control */}
+          <div className="flex items-center gap-1 rounded-xl border border-zinc-700 bg-zinc-900 p-1">
+            {[
+              { id: 'all', label: 'Semua' },
+              { id: 'start', label: 'Mulai' },
+              { id: 'complete', label: 'Selesai' },
+              { id: 'escalation', label: 'Blocker' },
+            ].map((item) => (
               <button
-                key={key}
-                onClick={() => setFilter(key)}
-                className={`px-2.5 py-1 rounded capitalize transition ${
-                  filter === key
-                    ? 'bg-zinc-100 text-zinc-950 font-bold'
-                    : 'text-zinc-400 hover:text-white'
+                key={item.id}
+                onClick={() => setFilter(item.id)}
+                className={`h-7 rounded-lg px-2.5 font-mono text-[11px] font-medium transition cursor-pointer ${
+                  filter === item.id
+                    ? 'bg-zinc-100 text-zinc-950 shadow-sm'
+                    : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
                 }`}
               >
-                {key === 'all'
-                  ? 'Semua'
-                  : key === 'start'
-                  ? 'Mulai'
-                  : key === 'complete'
-                  ? 'Selesai'
-                  : 'Blocker'}
+                {item.label}
               </button>
             ))}
           </div>
 
           <button
             onClick={clearEvents}
-            className="p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-lg border border-zinc-850 transition"
+            className="h-9 w-9 flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition cursor-pointer"
             title="Bersihkan Log"
           >
             <Trash2 className="w-4 h-4" />
@@ -78,7 +82,7 @@ export const SimpleActivityFeed: React.FC = () => {
       </div>
 
       {/* Events List */}
-      <div className="bg-zinc-950 border border-zinc-850 rounded-xl divide-y divide-zinc-850 overflow-hidden font-mono">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-xl divide-y divide-zinc-800/80 overflow-hidden font-mono">
         {filteredEvents.length === 0 ? (
           <div className="text-center py-12 text-zinc-500 text-xs italic">
             Tidak ada aktivitas dalam kategori ini.
@@ -87,15 +91,15 @@ export const SimpleActivityFeed: React.FC = () => {
           filteredEvents.map((evt) => (
             <div
               key={evt.id}
-              className="p-3.5 hover:bg-zinc-900/60 flex items-start gap-3 text-xs transition"
+              className="p-3.5 hover:bg-zinc-900/40 flex items-start gap-3 text-xs transition"
             >
-              <div className="p-1 rounded bg-black border border-zinc-800 text-zinc-300 shrink-0 mt-0.5 font-mono text-[10px]">
+              <div className="px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 text-zinc-300 shrink-0 mt-0.5 font-mono text-[10px]">
                 {evt.type.toUpperCase().slice(0, 4)}
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 text-[11px]">{evt.timestamp}</span>
+                  <span className="text-zinc-500 text-[11px] font-mono">{evt.timestamp}</span>
                   <span className="font-medium text-zinc-200">{evt.message}</span>
                 </div>
                 {evt.details && (
@@ -108,7 +112,7 @@ export const SimpleActivityFeed: React.FC = () => {
               {evt.agentId && (
                 <button
                   onClick={() => selectAgent(evt.agentId!)}
-                  className="px-2 py-1 text-[10px] bg-black hover:bg-zinc-850 text-zinc-300 rounded border border-zinc-800 shrink-0 transition"
+                  className="h-7 px-2.5 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-[11px] font-mono shrink-0 transition cursor-pointer"
                 >
                   Lihat Agen
                 </button>

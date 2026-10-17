@@ -24,7 +24,7 @@ export const DEFAULT_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
   {
     id: 'fullstack-feature',
     name: 'Fullstack Feature',
-    badge: '⚡ End-to-End',
+    badge: '[E2E] End-to-End',
     category: 'feature',
     description: 'Decompose user story into frontend UI, backend API, DB migration, & QA test.',
     targetMode: 'pm_decompose',
@@ -37,7 +37,7 @@ export const DEFAULT_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
   {
     id: 'security-audit',
     name: 'Security & Bug Audit',
-    badge: '🛡️ Strix Scan',
+    badge: '[SEC] Strix Scan',
     category: 'security',
     description: 'Autonomous security scan, CWE vulnerability checks, and secret leakage prevention.',
     targetMode: 'pm_decompose',
@@ -50,7 +50,7 @@ export const DEFAULT_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
   {
     id: 'bugfix-regression',
     name: 'Bugfix & Test',
-    badge: '🐛 Quick Fix',
+    badge: '[FIX] Quick Fix',
     category: 'fix',
     description: 'Reproduce edge cases, create focused minimal patch, and run verification check.',
     targetMode: 'single',
@@ -66,7 +66,7 @@ export const DEFAULT_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
   {
     id: 'api-refactoring',
     name: 'API Refactoring',
-    badge: '🧹 Clean Code',
+    badge: '[REFACTOR] Clean Code',
     category: 'refactor',
     description: 'Simplify payload schemas, modernize endpoints, and optimize token footprint.',
     targetMode: 'pm_decompose',

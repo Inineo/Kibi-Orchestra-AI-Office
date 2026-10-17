@@ -564,9 +564,9 @@ export class ThreeOfficeScene {
           this.drawCommandCard(ctx, cX, colTop + 58, colW, '5,000 Synthetic Fuzzing Bursts', 'T-1000 (QA)', '#fbbf24');
           this.drawCommandCard(ctx, cX, colTop + 148, colW, 'Security Advisory RFC Validation', 'Vigilance (Security)', '#fbbf24');
         } else if (i === 3) {
-          this.drawCommandCard(ctx, cX, colTop + 58, colW, '✓ Zero-Trust Token Propagation', 'Completed (09:42)', '#10b981');
-          this.drawCommandCard(ctx, cX, colTop + 148, colW, '✓ Docker Multi-Stage Optimization', 'Completed (08:15)', '#10b981');
-          this.drawCommandCard(ctx, cX, colTop + 238, colW, '✓ Vitest Synthetic Harness 94.2%', 'Completed (07:30)', '#10b981');
+          this.drawCommandCard(ctx, cX, colTop + 58, colW, '[OK] Zero-Trust Token Propagation', 'Completed (09:42)', '#10b981');
+          this.drawCommandCard(ctx, cX, colTop + 148, colW, '[OK] Docker Multi-Stage Optimization', 'Completed (08:15)', '#10b981');
+          this.drawCommandCard(ctx, cX, colTop + 238, colW, '[OK] Vitest Synthetic Harness 94.2%', 'Completed (07:30)', '#10b981');
         }
       });
 

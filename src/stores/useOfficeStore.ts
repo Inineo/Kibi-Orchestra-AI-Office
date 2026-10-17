@@ -373,14 +373,14 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         locationState: 'at_desk',
         idleActivity: 'standby',
         currentTask: `Analyzing PRD: ${goal.slice(0, 40)}...`,
-        currentThought: `🎯 Product Manager mengurai Mission: "${goal}" menjadi sub-task tim teknis...`,
+        currentThought: `[PM] Product Manager mengurai Mission: "${goal}" menjadi sub-task tim teknis...`,
         currentAction: 'Menjalankan inferensi Product Manager AI via 9Router Gateway',
       });
     }
 
     addEvent({
       type: 'start',
-      message: `🎯 [PM] ${pmAgent?.name || 'Product Manager'} memulai dekomposisi misi: "${goal}"`,
+      message: `[PM] ${pmAgent?.name || 'Product Manager'} memulai dekomposisi misi: "${goal}"`,
       agentId: pmAgent?.id,
       details: 'Mengurai PRD menjadi spesifikasi tugas terarah untuk Frontend, Backend, dan Intern.',
     });
@@ -430,7 +430,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
           if (res.issue_url) {
             addEvent({
               type: 'artifact',
-              message: `🐙 Membuat issue GitHub untuk mission: "${goal}"`,
+              message: `[GIT] Membuat issue GitHub untuk mission: "${goal}"`,
               details: res.issue_url,
             });
           } else if (res.is_sensitive) {
@@ -443,14 +443,14 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       if (pmAgent) {
         updateAgent(pmAgent.id, {
           status: 'idle',
-          currentThought: `✓ Berhasil memecah misi menjadi ${result.tasks.length} tiket sprint aktif.`,
+          currentThought: `[OK] Berhasil memecah misi menjadi ${result.tasks.length} tiket sprint aktif.`,
           currentAction: 'Memantau eksekusi engineer di dashboard',
         });
       }
 
       addEvent({
         type: 'complete',
-        message: `✓ [PM DECOMPOSITION COMPLETED]: ${result.tasks.length} tugas baru siap dikerjakan tim!`,
+        message: `[OK] [PM DECOMPOSITION COMPLETED]: ${result.tasks.length} tugas baru siap dikerjakan tim!`,
         agentId: pmAgent?.id,
         details: result.epicSummary,
       });
@@ -460,7 +460,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       if (pmAgent) {
         updateAgent(pmAgent.id, {
           status: 'idle',
-          currentThought: '⚠️ Gagal menghubungi 9Router, fallback ke manual backlog.',
+          currentThought: '[WARN] Gagal menghubungi 9Router, fallback ke manual backlog.',
           currentAction: 'Standby di meja kerja',
         });
       }
@@ -491,12 +491,12 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         status: 'coding',
         idleActivity: 'standby',
         locationState: 'at_desk',
-        currentThought: '✓ Dependency contract disetujui oleh Architect Dr. Marcus Chen. Melanjutkan eksekusi di meja...',
+        currentThought: '[OK] Dependency contract disetujui oleh Architect Dr. Marcus Chen. Melanjutkan eksekusi di meja...',
         currentAction: 'Menulis patch dan validasi endpoint handler di meja kerja',
       });
       state.addEvent({
         type: 'complete',
-        message: `✓ Architect Dr. Marcus Chen menyetujui RFC dan membuka blokir ${blocked.name}`,
+        message: `[OK] Architect Dr. Marcus Chen menyetujui RFC dan membuka blokir ${blocked.name}`,
         agentId: blocked.id,
         details: 'Subnet proxy whitelist diterapkan ke gateway.',
       });
@@ -557,12 +557,12 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
               elapsedTime: 0,
               currentThought:
                 nextActivity === 'coffee'
-                  ? '☕ Tugas selesai. Berjalan ke coffee bar menikmati espresso hangat...'
+                  ? '[BREAK] Tugas selesai. Berjalan ke coffee bar menikmati espresso hangat...'
                   : nextActivity === 'phone'
-                  ? '📱 Tugas selesai. Duduk santai di sofa lounge membaca referensi di smartphone...'
+                  ? '[LOUNGE] Tugas selesai. Duduk santai di sofa lounge membaca referensi di smartphone...'
                   : nextActivity === 'stretch'
-                  ? '🚶‍♂️ Tugas selesai. Mondar-mandir jalan santai di lorong meregangkan kaki...'
-                  : '😴 Tugas selesai. Duduk rileks di lounge memulihkan energi kognitif (Zzz)...',
+                  ? '[WALK] Tugas selesai. Mondar-mandir jalan santai di lorong meregangkan kaki...'
+                  : '[REST] Tugas selesai. Duduk rileks di lounge memulihkan energi kognitif (Zzz)...',
               currentAction:
                 nextActivity === 'coffee'
                   ? 'Pergi ke coffee bar (Coffee Break)'
@@ -589,7 +589,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
                   currentTask: `Audit PR untuk ${associatedTask.key}`,
                   currentTaskId: associatedTask.id,
                   progress: 20,
-                  currentThought: `🔍 Kembali ke meja kerja: Membaca AST diff & security checklist ${associatedTask.key}...`,
+                  currentThought: `[REVIEW] Kembali ke meja kerja: Membaca AST diff & security checklist ${associatedTask.key}...`,
                   currentAction: `Melakukan code review ${associatedTask.key} di meja`,
                 });
                 state.addEvent({
@@ -629,7 +629,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
             })
               .then((aiRes) => {
                 get().updateAgent(luckyAgent.id, {
-                  currentThought: `🤖 [9Router AI]: ${aiRes.thought}`,
+                  currentThought: `[AI] [9Router]: ${aiRes.thought}`,
                   currentAction: aiRes.action,
                   metrics: {
                     ...luckyAgent.metrics,
@@ -726,7 +726,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
                 if (res.summary) {
                   state.addEvent({
                     type: 'progress',
-                    message: `🛡️ [STRIX QA]: ${res.summary}`,
+                    message: `[SECURITY] [STRIX QA]: ${res.summary}`,
                     agentId: luckyAgent.id,
                   });
                 }
@@ -847,13 +847,13 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
       get().updateAgent(candA.id, {
         locationState: 'chatting',
         idleActivity: 'standby',
-        currentThought: `💬 Berdiskusi dengan ${candB.name} tentang optimasi performa & arsitektur...`,
+        currentThought: `[SYNC] Berdiskusi dengan ${candB.name} tentang optimasi performa & arsitektur...`,
         currentAction: `Mengobrol dengan ${candB.name} di collaboration table`,
       });
       get().updateAgent(candB.id, {
         locationState: 'chatting',
         idleActivity: 'standby',
-        currentThought: `💬 Berbagi wawasan dengan ${candA.name} di collaboration table...`,
+        currentThought: `[SYNC] Berbagi wawasan dengan ${candA.name} di collaboration table...`,
         currentAction: `Mengobrol dengan ${candA.name} di collaboration table`,
       });
       return;
@@ -865,25 +865,25 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
         {
           act: 'coffee',
           loc: 'coffee_bar',
-          thought: '☕ Berjalan ke coffee bar menikmati espresso hangat...',
+          thought: '[BREAK] Berjalan ke coffee bar menikmati espresso hangat...',
           action: 'Berdiri di coffee bar menikmati kopi',
         },
         {
           act: 'phone',
           loc: 'lounge',
-          thought: '📱 Duduk santai di sofa lounge mengecek dokumentasi di ponsel...',
+          thought: '[LOUNGE] Duduk santai di sofa lounge mengecek dokumentasi di ponsel...',
           action: 'Duduk santai di sofa lounge',
         },
         {
           act: 'stretch',
           loc: 'walking',
-          thought: '🚶‍♂️ Mondar-mandir jalan santai di lorong meregangkan kaki & pikiran...',
+          thought: '[WALK] Mondar-mandir jalan santai di lorong meregangkan kaki & pikiran...',
           action: 'Mondar-mandir santai di lorong kantor',
         },
         {
           act: 'standby',
           loc: 'whiteboard',
-          thought: '📋 Mempelajari diagram arsitektur sistem pada whiteboard...',
+          thought: '[SPEC] Mempelajari diagram arsitektur sistem pada whiteboard...',
           action: 'Berdiri menganalisis whiteboard',
         },
       ];
@@ -924,13 +924,13 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
     updateAgent(candidate.id, {
       status: 'blocked',
-      currentThought: '⚠️ ESCALATION: Upstream schema contract mismatch detected! Awaiting architect approval.',
+      currentThought: '[ALERT] ESCALATION: Upstream schema contract mismatch detected! Awaiting architect approval.',
       currentAction: 'Blocked by dependency on /api/v1/jwks endpoint failure',
     });
 
     addEvent({
       type: 'escalation',
-      message: `⚠️ ESCALATION: ${candidate.name} is BLOCKED on ${candidate.currentTask || 'task execution'}!`,
+      message: `[ALERT] ESCALATION: ${candidate.name} is BLOCKED on ${candidate.currentTask || 'task execution'}!`,
       agentId: candidate.id,
       details: 'Critical dependency failure reported. Alert sent to Dr. Marcus Chen (Architect).',
     });
@@ -945,13 +945,13 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
     updateAgent(blockedAgent.id, {
       status: 'coding',
-      currentThought: '✓ Blocker resolved by Architect approval. Resuming code execution...',
+      currentThought: '[OK] Blocker resolved by Architect approval. Resuming code execution...',
       currentAction: 'Compiling patched endpoint handler',
     });
 
     addEvent({
       type: 'complete',
-      message: `✓ Blocker resolved for ${blockedAgent.name} by Systems Architect!`,
+      message: `[OK] Blocker resolved for ${blockedAgent.name} by Systems Architect!`,
       agentId: blockedAgent.id,
       details: 'CIDR header subnet whitelisted in reverse proxy configuration.',
     });
@@ -971,7 +971,7 @@ export const useOfficeStore = create<OfficeState>((set, get) => ({
 
     addEvent({
       type: 'error',
-      message: '🚨 INCIDENT INJECTED: Race condition in Distributed Token Blacklist reported on production canary!',
+      message: '[INCIDENT] Race condition in Distributed Token Blacklist reported on production canary!',
       details: 'Automated test suite flagged 2 dirty reads out of 50,000 requests.',
     });
 

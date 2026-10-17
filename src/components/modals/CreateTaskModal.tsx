@@ -6,7 +6,7 @@ import {
   DEFAULT_WORKFLOW_TEMPLATES,
   WorkflowTemplate,
 } from '../../data/workflowTemplates';
-import { X, Plus, Sparkles, Layers, Bot, ArrowRight, Loader2, Coins, Bookmark } from 'lucide-react';
+import { X, Plus, Sparkles, Layers, Bot, ArrowRight, Loader2, Coins, Bookmark, Trash2 } from 'lucide-react';
 
 const STORAGE_KEY_CUSTOM_TEMPLATES = 'kibi_custom_workflow_templates';
 
@@ -76,7 +76,7 @@ export const CreateTaskModal: React.FC = () => {
     const newTpl: WorkflowTemplate = {
       id: 'custom-' + Date.now(),
       name,
-      badge: '⭐ Custom',
+      badge: '[CUSTOM]',
       category: 'custom',
       description: isPm ? missionGoal : (description || title),
       targetMode: mode,
@@ -92,6 +92,19 @@ export const CreateTaskModal: React.FC = () => {
     const updated = [newTpl, ...customTemplates];
     setCustomTemplates(updated);
     setSelectedTemplateId(newTpl.id);
+    try {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_TEMPLATES, JSON.stringify(updated));
+    } catch {
+      // Storage unavailable
+    }
+  };
+
+  const handleDeleteSelectedTemplate = () => {
+    if (!selectedTemplateId?.startsWith('custom-')) return;
+
+    const updated = customTemplates.filter((template) => template.id !== selectedTemplateId);
+    setCustomTemplates(updated);
+    setSelectedTemplateId(null);
     try {
       localStorage.setItem(STORAGE_KEY_CUSTOM_TEMPLATES, JSON.stringify(updated));
     } catch {
@@ -202,16 +215,30 @@ export const CreateTaskModal: React.FC = () => {
               <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
                 Workflow presets
               </span>
-              {((mode === 'pm_decompose' && missionGoal.trim()) || (mode === 'single' && title.trim())) && (
-                <button
-                  type="button"
-                  onClick={handleSaveCurrentAsTemplate}
-                  className="flex items-center gap-1 font-mono text-[10px] text-zinc-500 transition hover:text-zinc-200"
-                >
-                  <Bookmark className="h-3 w-3" />
-                  <span>Simpan</span>
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {selectedTemplateId?.startsWith('custom-') && (
+                  <button
+                    id="delete-selected-template"
+                    type="button"
+                    onClick={handleDeleteSelectedTemplate}
+                    className="flex items-center gap-1 font-mono text-[10px] text-zinc-500 transition hover:text-zinc-200"
+                    title="Hapus template terpilih"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span>Hapus</span>
+                  </button>
+                )}
+                {((mode === 'pm_decompose' && missionGoal.trim()) || (mode === 'single' && title.trim())) && (
+                  <button
+                    type="button"
+                    onClick={handleSaveCurrentAsTemplate}
+                    className="flex items-center gap-1 font-mono text-[10px] text-zinc-500 transition hover:text-zinc-200"
+                  >
+                    <Bookmark className="h-3 w-3" />
+                    <span>Simpan</span>
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {allTemplates.map((tpl) => {
@@ -306,7 +333,7 @@ export const CreateTaskModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={isDecomposing || !missionGoal.trim()}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold transition cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-50"
+                className="h-8 rounded-md bg-zinc-100 px-3 font-mono text-xs font-medium text-zinc-950 transition hover:bg-white cursor-pointer flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isDecomposing ? (
                   <>

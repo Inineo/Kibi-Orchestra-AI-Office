@@ -147,22 +147,22 @@ export const AgentSettingsTab: React.FC = () => {
   });
 
   return (
-    <div className="min-h-full w-full bg-zinc-950 p-6 md:p-8 text-zinc-100 font-sans selection:bg-zinc-800">
+    <div className="min-h-full w-full bg-zinc-950 p-6 md:p-8 text-zinc-100 font-mono text-xs selection:bg-zinc-800">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Top Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-zinc-100 text-zinc-950 shadow-sm">
-                <Cpu className="h-5 w-5" />
-              </div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200 shrink-0">
+              <Cpu className="w-4 h-4 text-zinc-300" />
+            </div>
+            <div>
+              <h1 className="font-semibold text-xs tracking-wide text-zinc-100 uppercase">
                 Konfigurasi Model & Agen AI
               </h1>
+              <p className="mt-0.5 font-mono text-[11px] text-zinc-400">
+                Ganti nama avatar dan sesuaikan API model AI (LLM) untuk masing-masing agen dalam sistem virtual workspace.
+              </p>
             </div>
-            <p className="mt-1 text-xs md:text-sm text-zinc-400">
-              Ganti nama avatar dan sesuaikan API model AI (LLM) untuk masing-masing agen dalam sistem virtual workspace.
-            </p>
           </div>
 
           {/* Quick Presets & Refresh */}
@@ -170,36 +170,36 @@ export const AgentSettingsTab: React.FC = () => {
             <button
               onClick={loadModels}
               disabled={loadingModels}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="h-8 rounded-md bg-zinc-900 border border-zinc-700 px-2.5 font-mono text-xs font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="Ambil ulang daftar model langsung dari 9Router"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loadingModels ? 'animate-spin' : ''}`} />
               <span>{availableModels.length > 0 ? `${availableModels.length} Model Aktif` : 'Sinkron 9Router'}</span>
             </button>
-            <span className="text-xs text-zinc-400 font-mono uppercase tracking-wider mr-1 hidden lg:inline">
-              Preset Cepat:
+            <span className="text-[11px] text-zinc-500 font-mono uppercase tracking-wider mr-1 hidden lg:inline">
+              Preset:
             </span>
             <button
               onClick={() => applyAllModelPreset('Daily', '9Router Daily')}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-200 transition cursor-pointer"
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2.5 font-mono text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition cursor-pointer"
             >
               Semua Daily
             </button>
             <button
               onClick={() => applyAllModelPreset('Coding_Specialist', 'Coding Specialist')}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-200 transition cursor-pointer"
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2.5 font-mono text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition cursor-pointer"
             >
               Semua Coder
             </button>
             <button
               onClick={() => applyAllModelPreset('gemini/gemini-3.7-flash', 'Gemini 3.7 Flash')}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-200 transition cursor-pointer"
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2.5 font-mono text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition cursor-pointer"
             >
               Gemini 3.7 Flash
             </button>
             <button
               onClick={resetAllToDefaults}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/70 text-zinc-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
+              className="h-8 rounded-md border border-zinc-800 bg-zinc-950 px-2.5 font-mono text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition flex items-center gap-1.5 cursor-pointer"
               title="Kembalikan model ke default"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -210,32 +210,32 @@ export const AgentSettingsTab: React.FC = () => {
 
         {/* Success Alert Banner */}
         {savedNotice && (
-          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-200 text-xs md:text-sm animate-in fade-in slide-in-from-top-2">
-            <Check className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs font-mono animate-in fade-in slide-in-from-top-2">
+            <Check className="h-4 w-4 text-zinc-100 shrink-0" />
             <span>{savedNotice}</span>
           </div>
         )}
 
         {/* Filters & Search Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
-          {/* Department Filter Tabs */}
-          <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+          {/* Department Filter Segmented Control */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 rounded-xl border border-zinc-700 bg-zinc-900 p-1 text-xs">
             <button
               onClick={() => setSelectedDept('all')}
-              className={`px-3 py-1.5 rounded-md font-medium transition cursor-pointer ${
+              className={`h-8 rounded-lg px-3 font-mono text-[11px] font-medium transition cursor-pointer flex items-center justify-center ${
                 selectedDept === 'all'
-                  ? 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-100 text-zinc-950 shadow-sm'
+                  : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
               }`}
             >
               Semua ({agents.length})
             </button>
             <button
               onClick={() => setSelectedDept('orchestra')}
-              className={`px-3 py-1.5 rounded-md font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              className={`h-8 rounded-lg px-3 font-mono text-[11px] font-medium transition cursor-pointer flex items-center justify-center gap-1.5 ${
                 selectedDept === 'orchestra'
-                  ? 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-100 text-zinc-950 shadow-sm'
+                  : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
               }`}
             >
               <Layers className="h-3.5 w-3.5" />
@@ -243,10 +243,10 @@ export const AgentSettingsTab: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedDept('developer')}
-              className={`px-3 py-1.5 rounded-md font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              className={`h-8 rounded-lg px-3 font-mono text-[11px] font-medium transition cursor-pointer flex items-center justify-center gap-1.5 ${
                 selectedDept === 'developer'
-                  ? 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-100 text-zinc-950 shadow-sm'
+                  : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
               }`}
             >
               <Code2 className="h-3.5 w-3.5" />
@@ -254,10 +254,10 @@ export const AgentSettingsTab: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedDept('writer')}
-              className={`px-3 py-1.5 rounded-md font-medium transition cursor-pointer flex items-center gap-1.5 ${
+              className={`h-8 rounded-lg px-3 font-mono text-[11px] font-medium transition cursor-pointer flex items-center justify-center gap-1.5 ${
                 selectedDept === 'writer'
-                  ? 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-100 text-zinc-950 shadow-sm'
+                  : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
               }`}
             >
               <FileText className="h-3.5 w-3.5" />
@@ -267,13 +267,13 @@ export const AgentSettingsTab: React.FC = () => {
 
           {/* Search box */}
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama atau model AI..."
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition"
+              className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 pl-8 pr-3 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
             />
           </div>
         </div>
@@ -290,24 +290,26 @@ export const AgentSettingsTab: React.FC = () => {
             return (
               <div
                 key={agent.id}
-                className={`flex flex-col justify-between rounded-xl border p-4.5 transition relative overflow-hidden bg-zinc-900/40 hover:bg-zinc-900/70 ${
-                  isOrchestra
-                    ? 'border-zinc-400 shadow-sm shadow-zinc-900'
-                    : 'border-zinc-800 hover:border-zinc-700'
-                }`}
+                className="flex flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition relative overflow-hidden hover:border-zinc-700 hover:bg-zinc-900/70 font-mono text-xs shadow-sm"
               >
                 {/* Accent top pill */}
                 {isOrchestra && (
-                  <div className="absolute top-0 right-0 px-2.5 py-0.5 rounded-bl-lg bg-zinc-100 text-zinc-950 font-mono text-[9px] font-bold uppercase tracking-wider">
+                  <div className="absolute top-0 right-0 px-2 py-0.5 rounded-bl-lg bg-zinc-100 text-zinc-950 font-mono text-[9px] font-medium uppercase tracking-wider">
                     Orchestra Maestro
                   </div>
                 )}
 
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   {/* Avatar & Department Row */}
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-white font-bold text-sm shadow-inner">
-                      {isOrchestra ? '🪄' : agent.department === 'developer' ? '💻' : '📝'}
+                    <div className="h-9 w-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 text-zinc-300 font-bold text-sm shadow-sm">
+                      {isOrchestra ? (
+                        <Layers className="h-4 w-4" />
+                      ) : agent.department === 'developer' ? (
+                        <Code2 className="h-4 w-4" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -318,24 +320,23 @@ export const AgentSettingsTab: React.FC = () => {
                         <span
                           className={`inline-block h-2 w-2 rounded-full ${
                             agent.status === 'idle'
-                              ? 'bg-zinc-400'
+                              ? 'bg-zinc-500'
                               : agent.status === 'blocked'
                               ? 'bg-amber-400 animate-pulse'
                               : 'bg-emerald-400 animate-ping'
                           }`}
                         />
                       </div>
-                      <p className="text-xs text-zinc-400 truncate">
-                        ID: <span className="font-mono text-zinc-300">{agent.id}</span>
+                      <p className="text-[11px] text-zinc-500 truncate">
+                        ID: <span className="font-mono text-zinc-400">{agent.id}</span>
                       </p>
                     </div>
                   </div>
 
                   {/* Field 1: Nama Agen */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
-                      <span>Nama AI</span>
-                      <span className="text-[10px] text-zinc-400 font-sans">Bisa diubah</span>
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                      Nama AI
                     </label>
                     <input
                       type="text"
@@ -351,30 +352,26 @@ export const AgentSettingsTab: React.FC = () => {
                           e.currentTarget.blur();
                         }
                       }}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition"
+                      className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
                       placeholder="Masukkan nama AI..."
                     />
                   </div>
 
                   {/* Field 2: Role / Peran Tim */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <UserCheck className="h-3 w-3 text-zinc-400" />
-                        Role Tim
-                      </span>
-                      <span className="text-[10px] text-zinc-400">PM, Frontend, Backend, Intern</span>
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                      Role Tim
                     </label>
                     <select
                       value={agent.role}
                       onChange={(e) => handleRoleChange(agent.id, e.target.value as AgentRole)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition cursor-pointer"
+                      className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 font-mono text-xs text-zinc-300 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 cursor-pointer"
                     >
                       <optgroup label="Role Utama">
-                        <option value="product_manager">🎯 Product Manager (PM)</option>
-                        <option value="frontend">💻 Front End Engineer</option>
-                        <option value="backend">⚙️ Back End Engineer</option>
-                        <option value="intern">🌱 Software Engineer Intern</option>
+                        <option value="product_manager">Product Manager (PM)</option>
+                        <option value="frontend">Front End Engineer</option>
+                        <option value="backend">Back End Engineer</option>
+                        <option value="intern">Software Engineer Intern</option>
                       </optgroup>
                       <optgroup label="Role Spesialis Lainnya">
                         <option value="strategist">Workforce Strategist</option>
@@ -390,8 +387,8 @@ export const AgentSettingsTab: React.FC = () => {
                   </div>
 
                   {/* Field 3: Jabatan / Spesialisasi Custom Text */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400">
                       Jabatan / Spesialisasi
                     </label>
                     <input
@@ -408,19 +405,18 @@ export const AgentSettingsTab: React.FC = () => {
                           e.currentTarget.blur();
                         }
                       }}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition"
+                      className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
                       placeholder="Masukkan jabatan..."
                     />
                   </div>
 
-                  {/* Field 4: API Model AI (Menampilkan semua model dari 9Router) */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="h-3 w-3 text-zinc-400" />
-                        API Model AI ({availableModels.length > 0 ? `${availableModels.length} Tersedia` : '9Router'})
+                  {/* Field 4: API Model AI */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                        API Model AI
                       </label>
-                      <span className="text-[10px] font-mono text-zinc-400 truncate max-w-[130px]">
+                      <span className="text-[10px] font-mono text-zinc-500 truncate max-w-[130px]">
                         {agent.model}
                       </span>
                     </div>
@@ -438,7 +434,7 @@ export const AgentSettingsTab: React.FC = () => {
                           }));
                         }
                       }}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition cursor-pointer"
+                      className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 font-mono text-xs text-zinc-300 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 cursor-pointer"
                     >
                       {/* 1. Kategori 9Router Smart Aliases */}
                       <optgroup label="9Router Router Aliases (Direkomendasikan)">
@@ -496,7 +492,7 @@ export const AgentSettingsTab: React.FC = () => {
                               e.currentTarget.blur();
                             }
                           }}
-                          className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-amber-200 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-amber-400 transition"
+                          className="h-9 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
                         />
                       </div>
                     )}
@@ -506,16 +502,16 @@ export const AgentSettingsTab: React.FC = () => {
                 {/* Footer Metrics & Current Activity */}
                 <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-zinc-400">Tokens:</span>
-                    <span className="text-zinc-200">{(agent.metrics.tokensGenerated / 1000).toFixed(0)}k</span>
+                    <span className="text-zinc-500">Tokens:</span>
+                    <span className="text-zinc-300">{(agent.metrics.tokensGenerated / 1000).toFixed(0)}k</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-zinc-400">Akurasi:</span>
-                    <span className="text-emerald-400 font-semibold">{agent.metrics.accuracyScore}%</span>
+                    <span className="text-zinc-500">Akurasi:</span>
+                    <span className="text-zinc-200 font-medium">{agent.metrics.accuracyScore}%</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-zinc-400">Selesai:</span>
-                    <span className="text-zinc-200">{agent.metrics.tasksCompleted}</span>
+                    <span className="text-zinc-500">Selesai:</span>
+                    <span className="text-zinc-300">{agent.metrics.tasksCompleted}</span>
                   </div>
                 </div>
               </div>

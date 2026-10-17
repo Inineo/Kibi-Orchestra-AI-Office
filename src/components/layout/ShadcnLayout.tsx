@@ -66,40 +66,54 @@ export const ShadcnLayout: React.FC<ShadcnLayoutProps> = ({
   ];
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-black text-zinc-100 font-sans antialiased">
+    <div className="flex h-screen w-screen overflow-hidden bg-black text-zinc-100 font-mono antialiased">
       {/* 1. SHADCN SIDEBAR */}
       <aside
         className={`flex flex-col border-r border-zinc-800 bg-zinc-950 transition-all duration-200 z-30 ${
           sidebarOpen ? 'w-64' : 'w-16'
         }`}
       >
-        {/* Organization / Project Logo */}
-        <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-3.5">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-950 font-bold shadow-sm">
-              <Layers className="h-4 w-4" />
-            </div>
-            {sidebarOpen && (
-              <div className="flex flex-col min-w-0">
-                <span className="font-mono text-xs font-bold uppercase tracking-wider text-white truncate">
-                  AI Orchestra
-                </span>
-                <span className="font-mono text-[10px] text-zinc-400 truncate">
-                  Virtual Workspace
-                </span>
+        {/* Organization / Project Logo & Toggle */}
+        <div
+          className={`flex h-14 items-center border-b border-zinc-800 ${
+            sidebarOpen ? 'justify-between px-3.5' : 'justify-center px-2'
+          }`}
+        >
+          {sidebarOpen ? (
+            <>
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-950 font-bold shadow-sm">
+                  <Layers className="h-4 w-4" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-white truncate">
+                    AI Orchestra
+                  </span>
+                  <span className="font-mono text-[10px] text-zinc-400 truncate">
+                    Virtual Workspace
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="h-7 w-7 text-zinc-400 hover:text-white"
-            title={sidebarOpen ? 'Ciutkan Sidebar' : 'Perluas Sidebar'}
-          >
-            {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(false)}
+                className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-900 shrink-0 cursor-pointer"
+                title="Ciutkan Sidebar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="h-9 w-9 flex items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition cursor-pointer"
+              title="Perluas Sidebar"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Navigation List */}

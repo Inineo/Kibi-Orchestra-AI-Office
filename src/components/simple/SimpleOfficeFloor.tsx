@@ -13,6 +13,14 @@ import {
   Smartphone,
   Moon,
   Activity,
+  FlaskConical,
+  Search,
+  AlertTriangle,
+  MessageSquare,
+  Footprints,
+  ClipboardList,
+  Armchair,
+  Pause,
 } from 'lucide-react';
 
 interface ZoneDef {
@@ -44,67 +52,126 @@ export const SimpleOfficeFloor: React.FC = () => {
 
   const getStatusBadge = (agent: Agent) => {
     if (agent.status === 'coding') {
-      return { label: 'CODING', icon: '💻', bg: 'bg-zinc-100 text-zinc-950 font-bold' };
+      return {
+        label: 'CODING',
+        icon: <Code2 className="w-3 h-3" />,
+        bg: 'bg-zinc-100 text-zinc-950 font-medium',
+      };
     }
     if (agent.status === 'planning') {
       return {
         label: agent.department === 'orchestra' ? 'ORKESTRASI' : 'PLANNING',
-        icon: agent.department === 'orchestra' ? '🪄' : '💭',
+        icon: agent.department === 'orchestra' ? <Layers className="w-3 h-3" /> : <FileText className="w-3 h-3" />,
         bg: 'bg-zinc-800 text-zinc-100 border border-zinc-700',
       };
     }
     if (agent.status === 'testing') {
-      return { label: 'TESTING', icon: '🧪', bg: 'bg-zinc-800 text-zinc-100' };
+      return {
+        label: 'TESTING',
+        icon: <FlaskConical className="w-3 h-3" />,
+        bg: 'bg-zinc-800 text-zinc-100 border border-zinc-700',
+      };
     }
     if (agent.status === 'reviewing') {
-      return { label: 'REVIEWING', icon: '🔍', bg: 'bg-zinc-800 text-zinc-100' };
+      return {
+        label: 'REVIEWING',
+        icon: <Search className="w-3 h-3" />,
+        bg: 'bg-zinc-800 text-zinc-100 border border-zinc-700',
+      };
     }
     if (agent.status === 'blocked') {
-      return { label: 'BLOCKED', icon: '⚠️', bg: 'bg-zinc-900 text-white border border-zinc-600' };
+      return {
+        label: 'BLOCKED',
+        icon: <AlertTriangle className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-200 border border-zinc-600',
+      };
     }
 
     // Idle activities & leaving desk locations
     if (agent.locationState === 'chatting') {
-      return { label: 'MENGOBROL', icon: '💬', bg: 'bg-zinc-900 text-zinc-200 border border-zinc-700' };
+      return {
+        label: 'MENGOBROL',
+        icon: <MessageSquare className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-300 border border-zinc-700',
+      };
     }
     if (agent.locationState === 'walking') {
-      return { label: 'MONDAR-MANDIR', icon: '🚶‍♂️', bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800' };
+      return {
+        label: 'MONDAR-MANDIR',
+        icon: <Footprints className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800',
+      };
     }
     if (agent.locationState === 'coffee_bar' || agent.idleActivity === 'coffee') {
-      return { label: 'MINUM KOPI', icon: '☕', bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800' };
+      return {
+        label: 'MINUM KOPI',
+        icon: <Coffee className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800',
+      };
     }
     if (agent.locationState === 'lounge' || agent.idleActivity === 'phone') {
-      return { label: 'SOFA LOUNGE', icon: '🛋️', bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800' };
+      return {
+        label: 'SOFA LOUNGE',
+        icon: <Armchair className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800',
+      };
     }
     if (agent.locationState === 'whiteboard') {
-      return { label: 'WHITEBOARD', icon: '📋', bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800' };
+      return {
+        label: 'WHITEBOARD',
+        icon: <ClipboardList className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800',
+      };
     }
     if (agent.idleActivity === 'nap') {
-      return { label: 'POWER NAP', icon: '😴', bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800' };
+      return {
+        label: 'POWER NAP',
+        icon: <Moon className="w-3 h-3" />,
+        bg: 'bg-zinc-900 text-zinc-300 border border-zinc-800',
+      };
     }
-    return { label: 'STANDBY', icon: '💤', bg: 'bg-zinc-900 text-zinc-400 border border-zinc-850' };
+    return {
+      label: 'STANDBY',
+      icon: <Pause className="w-3 h-3" />,
+      bg: 'bg-zinc-900 text-zinc-400 border border-zinc-800',
+    };
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-8 font-sans">
-      {/* Overview Info Header - Monochrome Minimalist */}
-      <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-850 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-            TATA LETAK KANTOR • 3 DEPARTEMEN
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5 font-mono">
-            Meja kerja dipisahkan ke zona <b>Orchestra</b>, <b>Developer</b>, dan <b>Writer</b>. Agen yang tidak bertugas melakukan aktivitas santai (kopi, peregangan, cek ponsel, nap).
-          </p>
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6 font-mono text-xs">
+      {/* Overview Info Header */}
+      <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200 shrink-0">
+            <Layers className="w-4 h-4 text-zinc-300" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-xs tracking-wide text-zinc-100 uppercase">
+              Tata Letak Kantor • 3 Departemen
+            </h2>
+            <p className="mt-0.5 font-mono text-[11px] text-zinc-400">
+              Meja kerja dipisahkan ke zona <b>Orchestra</b>, <b>Developer</b>, dan <b>Writer</b>. Agen yang tidak bertugas melakukan aktivitas santai (kopi, peregangan, cek ponsel, nap).
+            </p>
+          </div>
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-          <span className="px-2 py-0.5 rounded bg-zinc-100 text-zinc-950 font-semibold">💻 Coding</span>
-          <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">☕ Minum Kopi</span>
-          <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">📱 Cek Ponsel</span>
-          <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">🥱 Peregangan</span>
-          <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">😴 Power Nap</span>
+        <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-950 font-medium">
+            <Code2 className="w-3 h-3" /> Coding
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 text-zinc-300 border border-zinc-800">
+            <Coffee className="w-3 h-3" /> Minum Kopi
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 text-zinc-300 border border-zinc-800">
+            <Smartphone className="w-3 h-3" /> Cek Ponsel
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 text-zinc-300 border border-zinc-800">
+            <Activity className="w-3 h-3" /> Peregangan
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 text-zinc-300 border border-zinc-800">
+            <Moon className="w-3 h-3" /> Power Nap
+          </span>
         </div>
       </div>
 
@@ -115,18 +182,18 @@ export const SimpleOfficeFloor: React.FC = () => {
         return (
           <section
             key={zone.key}
-            className="rounded-2xl border border-zinc-850 bg-zinc-950 p-5 space-y-4"
+            className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 space-y-4"
           >
             {/* Zone Header Banner */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-zinc-850">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-zinc-800">
               <div>
-                <h3 className="font-bold text-sm tracking-widest text-zinc-100 font-mono flex items-center gap-2">
+                <h3 className="font-semibold text-xs tracking-wider text-zinc-100 uppercase font-mono flex items-center gap-2">
                   <span>{zone.title}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-700 text-zinc-400">
                     {zoneAgents.length} AGEN
                   </span>
                 </h3>
-                <p className="text-xs text-zinc-400 mt-0.5 font-mono">{zone.subtitle}</p>
+                <p className="text-[11px] text-zinc-400 mt-0.5 font-mono">{zone.subtitle}</p>
               </div>
             </div>
 
@@ -140,7 +207,7 @@ export const SimpleOfficeFloor: React.FC = () => {
                   <div
                     key={agent.id}
                     onClick={() => selectAgent(agent.id)}
-                    className="group relative bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 rounded-xl p-4 transition duration-150 cursor-pointer shadow-sm"
+                    className="group relative rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition duration-150 hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer shadow-sm"
                   >
                     {/* Top Desk Monochrome Line */}
                     <div className="absolute top-0 left-4 right-4 h-0.5 bg-zinc-700 rounded-b" />
@@ -148,12 +215,12 @@ export const SimpleOfficeFloor: React.FC = () => {
                     {/* Agent Header */}
                     <div className="flex items-start justify-between gap-2 mb-3 pt-1">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-white shadow-sm font-mono shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center font-bold text-zinc-200 shadow-sm font-mono shrink-0">
                           {agent.name.charAt(0)}
                         </div>
 
                         <div>
-                          <h4 className="font-bold text-xs text-zinc-100 group-hover:text-white transition">
+                          <h4 className="font-semibold text-xs text-zinc-100 group-hover:text-white transition">
                             {agent.name}
                           </h4>
                           <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
@@ -170,8 +237,8 @@ export const SimpleOfficeFloor: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Desk Monitor Display - Monochrome Minimalist */}
-                    <div className="bg-black rounded-lg p-3 border border-zinc-850 mb-2.5 space-y-2">
+                    {/* Desk Monitor Display */}
+                    <div className="bg-black rounded-lg p-3 border border-zinc-800 mb-2.5 space-y-2">
                       <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
                         <span className="flex items-center gap-1">
                           <Laptop className="w-3 h-3 text-zinc-300" /> MONITOR
@@ -207,7 +274,7 @@ export const SimpleOfficeFloor: React.FC = () => {
                     </div>
 
                     {/* Card Footer */}
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-850 text-[10px] font-mono text-zinc-400">
+                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-zinc-400">
                       <span className="flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-zinc-300" />
                         {agent.metrics.tasksCompleted} Selesai

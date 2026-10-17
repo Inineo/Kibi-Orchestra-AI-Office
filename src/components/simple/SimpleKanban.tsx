@@ -55,16 +55,21 @@ export const SimpleKanban: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4 font-sans">
-      {/* Header & Controls - Monochrome Minimalist */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-950 p-4 rounded-xl border border-zinc-850">
-        <div>
-          <h2 className="text-sm font-bold text-white uppercase font-mono tracking-wider flex items-center gap-2">
-            PAPAN ALUR TUGAS • WORKFLOW KANBAN
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5 font-mono">
-            Pantau pergerakan tugas dari perencanaan hingga selesai. Klik tombol panah untuk memindahkan status.
-          </p>
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4 font-mono text-xs">
+      {/* Header & Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200 shrink-0">
+            <Kanban className="w-4 h-4 text-zinc-300" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-xs tracking-wide text-zinc-100 uppercase">
+              Papan Alur Tugas • Workflow Kanban
+            </h2>
+            <p className="mt-0.5 font-mono text-[11px] text-zinc-400">
+              Pantau pergerakan tugas dari perencanaan hingga selesai. Klik tombol panah untuk memindahkan status.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -75,20 +80,20 @@ export const SimpleKanban: React.FC = () => {
               placeholder="Cari tugas..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-black border border-zinc-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-mono"
+              className="h-8 w-48 sm:w-60 rounded-md border border-zinc-700 bg-zinc-900 pl-8 pr-3 font-mono text-xs text-zinc-100 placeholder:text-zinc-600 transition focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
             />
           </div>
 
           <button
             onClick={() => setCreateTaskModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-lg text-xs font-mono font-semibold shadow-sm transition cursor-pointer"
+            className="h-8 rounded-md bg-zinc-100 px-3 font-mono text-xs font-medium text-zinc-950 transition hover:bg-white cursor-pointer flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" /> Tambah Tugas
           </button>
         </div>
       </div>
 
-      {/* 4 Kanban Columns - Monochrome Minimalist */}
+      {/* 4 Kanban Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {COLUMNS.map((col) => {
           const colTasks = filteredTasks.filter((t) => t.status === col.key);
@@ -96,14 +101,14 @@ export const SimpleKanban: React.FC = () => {
           return (
             <div
               key={col.key}
-              className="bg-zinc-950 border border-zinc-850 rounded-xl p-3.5 flex flex-col min-h-[460px]"
+              className="bg-zinc-950 border border-zinc-800 rounded-xl p-3.5 flex flex-col min-h-[460px]"
             >
               {/* Column Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-850 mb-3 px-1">
-                <span className="font-bold text-xs font-mono tracking-wider text-zinc-300">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3 px-1">
+                <span className="font-semibold text-xs font-mono tracking-wider text-zinc-300">
                   {col.title}
                 </span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-700 text-zinc-300">
                   {colTasks.length}
                 </span>
               </div>
@@ -124,20 +129,20 @@ export const SimpleKanban: React.FC = () => {
                       <div
                         key={task.id}
                         onClick={() => selectTask(task.id)}
-                        className="bg-black hover:bg-zinc-900/80 border border-zinc-850 hover:border-zinc-700 rounded-lg p-3 transition cursor-pointer group shadow-sm"
+                        className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 transition hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer group shadow-sm"
                       >
                         {/* Top: Key & Priority */}
                         <div className="flex items-center justify-between gap-1 mb-1.5">
-                          <span className="text-[11px] font-mono font-bold text-zinc-300">
+                          <span className="text-[11px] font-mono font-semibold text-zinc-300">
                             {task.key}
                           </span>
-                          <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
+                          <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border border-zinc-800 bg-zinc-900 text-zinc-400">
                             {task.priority}
                           </span>
                         </div>
 
                         {/* Title */}
-                        <h4 className="text-xs font-medium text-white mb-2 leading-snug line-clamp-2">
+                        <h4 className="text-xs font-medium text-zinc-100 mb-2 leading-snug line-clamp-2">
                           {task.title}
                         </h4>
 
@@ -158,7 +163,7 @@ export const SimpleKanban: React.FC = () => {
                         )}
 
                         {/* Footer: Agent & Move buttons */}
-                        <div className="flex items-center justify-between pt-2 border-t border-zinc-850 text-xs">
+                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80 text-xs">
                           {agent ? (
                             <div className="flex items-center gap-1.5 text-[11px] text-zinc-300">
                               <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
@@ -176,7 +181,7 @@ export const SimpleKanban: React.FC = () => {
                             {prev && (
                               <button
                                 onClick={() => moveTask(task.id, prev)}
-                                className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded transition"
+                                className="h-6 w-6 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition cursor-pointer"
                                 title="Kembalikan status"
                               >
                                 <ArrowLeft className="w-3 h-3" />
@@ -185,7 +190,7 @@ export const SimpleKanban: React.FC = () => {
                             {next && (
                               <button
                                 onClick={() => moveTask(task.id, next)}
-                                className="p-1 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded transition"
+                                className="h-6 w-6 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer"
                                 title="Lanjutkan status"
                               >
                                 <ArrowRight className="w-3 h-3" />
